@@ -851,7 +851,7 @@ function info() {
             // createImgDialog.id = "removable"
             createImgDialog.draggable = false
             createImgDialog.loading = "lazy"
-            createImgDialog.setAttribute("onclick", "currentSlide(" + (i + 1) + ")")
+            createImgDialog.setAttribute("onclick", "showSlides(" + (i + 1) + ")")
 
             createDivDialog.appendChild(createImgDialog)
             rowClass.appendChild(createDivDialog)
