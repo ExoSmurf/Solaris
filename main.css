@@ -1,6 +1,6 @@
 @font-face {
     font-family: Minecraft;
-    src: url('textures/font/F77MinecraftRegular-0VYv.ttf');
+    src: url('/textures/font/F77MinecraftRegular-0VYv.ttf');
 }
 
 body {
@@ -25,13 +25,13 @@ body {
     width: 0px;
     height: 0px;
     display: inline;
-    background-image: url(textures/allLoaded.png);
-    background-image: url(textures/images/1kx1khonor2.png);
-    background-image: url(textures/images/1kx1khonor22.png);
-    background-image: url(textures/images/2kx2kCasperOak.png);
-    background-image: url(textures/images/2kx2kCasperOak2.png);
-    background-image: url(textures/images/preview.png);
-    background-image: url(textures/images/preview2.png);
+    background-image: url(/textures/allLoaded.png);
+    background-image: url(/textures/images/1kx1khonor2.png);
+    background-image: url(/textures/images/1kx1khonor22.png);
+    background-image: url(/textures/images/2kx2kCasperOak.png);
+    background-image: url(/textures/images/2kx2kCasperOak2.png);
+    background-image: url(/textures/images/preview.png);
+    background-image: url(/textures/images/preview2.png);
 }
 
 .rubik-font {
@@ -271,7 +271,7 @@ header h1 {
 }
 
 #nameBoxImg {
-    background-image: url("textures/name.png");
+    background-image: url("/textures/name.png");
     background-size: cover;
 }
 
@@ -284,12 +284,12 @@ header h1 {
 }
 
 #ressBoxImg {
-    background-image: url("textures/ress.png");
+    background-image: url("/textures/ress.png");
     background-size: cover;
 }
 
 #bulkBoxImg {
-    background-image: url("textures/bulk.png");
+    background-image: url("/textures/bulk.png");
     background-size: cover;
     background-position-x: 5px;
 }
@@ -436,7 +436,7 @@ header h1 {
 }
 
 #diamBoxImg {
-    background-image: url("textures/diam.png");
+    background-image: url("/textures/diam.png");
     background-size: cover;
 }
 
