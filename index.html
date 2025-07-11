@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-	<meta charset="utf-8" />
-	<title>Solaris</title>
+	<meta charset="UTF-8" />
 	<link rel="stylesheet" href="/main.css" />
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -234,15 +233,13 @@
 
 		arrow.style.display = "none";
 
-		showSlides(slideNo)
-		function nextImg(n) {
+		// showSlides(slideNo)
+		window.nextImg = function (n) {
 			showSlides(slideNo += n);
 		};
-
-		function prevImg(n) {
+		window.prevImg = function (n) {
 			showSlides(slideNo -= n);
 		};
-
 		window.currentSlide = function (n) {
 			showSlides(slideNo = n);
 		};
@@ -293,7 +290,7 @@
 				arrow.style.top = `${center - arrow.offsetHeight / 2}px`;
 			}
 		}
-		function dialClose() {
+		window.dialClose = function () {
 			arrow.style.display = "none";
 			dialog.close();
 			dialog.style.display = "none"
@@ -303,18 +300,15 @@
 			updateDialogImgTransform();
 			const images = dialog.querySelectorAll("img");
 			images.forEach(img => img.remove());
-		}
-
-		function dialCloseContact() {
+		};
+		window.dialCloseContact = function () {
 			const dialogContact = document.getElementById("contactDialog");
 			dialogContact.close();
 			dialogContact.style.display = "none";
-		}
-
-		function dialCloseGallery() {
+		};
+		window.dialCloseGallery = function () {
 			const dialogGallery = document.getElementById("masterGalleryDialog");
 			const naviHolder = document.getElementById("naviHoldersMaster");
-
 			dialogGallery.close();
 			dialogGallery.style.display = "none";
 			naviHolder.style.display = "none";
@@ -322,14 +316,11 @@
 			if (galleryGrid) {
 				galleryGrid.innerHTML = "";
 			}
-		}
-
-		function dialCloseGalleryImg() {
+		};
+		window.dialCloseGalleryImg = function () {
 			const dialogGalleryImg = document.getElementById("galleryImageDialog");
-
 			dialogGalleryImg.close();
 			dialogGalleryImg.style.display = "none";
-
 			const img = dialogGalleryImg.querySelector("#galleryImageDialogImg");
 			if (img) {
 				img.src = "";
@@ -338,8 +329,5 @@
 			panX = 0;
 			panY = 0;
 			updateDialogImgTransform();
-		}
+		};
 	</script>
-</body>
-
-</html>

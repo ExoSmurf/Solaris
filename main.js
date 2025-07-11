@@ -1841,7 +1841,7 @@ window.addEventListener("resize", function () {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     // bloomPass.setSize(window.innerWidth / 2, window.innerHeight / 2)
-    composer.setSize(window.innerWidth, window.innerHeight);
+    // composer.setSize(window.innerWidth, window.innerHeight);
 });
 
 
