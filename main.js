@@ -8,7 +8,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); //tlo alpha na true zeby tlo widac bylo przed zaladowaniem
+const renderer = new THREE.WebGLRenderer({}); //tlo alpha na true zeby tlo widac bylo przed zaladowaniem
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ReinhardToneMapping;
@@ -19,6 +19,7 @@ renderer.shadowMap.enabled = true
 const DEFAULT_EXPOSURE = 1.5;
 const BLACKHOLE_EXPOSURE = 1;
 
+let mouseX, mouseY
 let lightPower = 50;
 const BLACKHOLE_LIGHT_POWER = 20;
 
@@ -27,11 +28,11 @@ let scene = new THREE.Scene;
 let camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
 let cameraOldPos
 let orbit = new OrbitControls(camera, renderer.domElement);
-orbit.rotateSpeed = 0.04
-const speed = 0.04
+const speed = 0.1
 camera.position.set(20, 20, 20);
 
 function orbitSettings() {
+    if (orbit) orbit.dispose(); orbit = null;
     orbit = new OrbitControls(camera, renderer.domElement);
     orbit.rotateSpeed = speed;
     orbit.enableDamping = true;
@@ -55,71 +56,68 @@ orbitZoom.noRotate = true;
 orbitZoom.noPan = true;
 orbitZoom.noZoom = false;
 orbitZoom.zoomSpeed = 1;
-const GravitationalLensingShader = {
-    uniforms: {
-        "tDiffuse": { value: null },
-        "strength": { value: 0.4 },
-        "center": { value: new THREE.Vector2(0, 0) },
-        "radius": { value: 0.5 }
-    },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-        }
-    `,
-    fragmentShader: `
-        uniform sampler2D tDiffuse;
-        uniform float strength;
-        uniform vec2 center;
-        uniform float radius;
-        varying vec2 vUv;
-        void main() {
-            vec2 uv = vUv;
-            vec2 toCenter = uv - center;
-            float dist = length(toCenter);
-            float effect = 1.0;
-            if(dist < radius) {
-                float curve = strength * pow((radius - dist) / radius, 2.0);
-                effect += curve;
-            }
-            uv = center + toCenter * effect;
-            gl_FragColor = texture2D(tDiffuse, uv);
-        }
-    `
-};
+// const GravitationalLensingShader = {
+//     uniforms: {
+//         "tDiffuse": { value: null },
+//         "strength": { value: 0.4 },
+//         "center": { value: new THREE.Vector2(0, 0) },
+//         "radius": { value: 0.5 }
+//     },
+//     vertexShader: `
+//         varying vec2 vUv;
+//         void main() {
+//             vUv = uv;
+//             gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+//         }
+//     `,
+//     fragmentShader: `
+//         uniform sampler2D tDiffuse;
+//         uniform float strength;
+//         uniform vec2 center;
+//         uniform float radius;
+//         varying vec2 vUv;
+//         void main() {
+//             vec2 uv = vUv;
+//             vec2 toCenter = uv - center;
+//             float dist = length(toCenter);
+//             float effect = 1.0;
+//             if(dist < radius) {
+//                 float curve = strength * pow((radius - dist) / radius, 2.0);
+//                 effect += curve;
+//             }
+//             uv = center + toCenter * effect;
+//             gl_FragColor = texture2D(tDiffuse, uv);
+//         }
+//     `
+// };
 
-const lensingPass = new ShaderPass(GravitationalLensingShader);
+// const lensingPass = new ShaderPass(GravitationalLensingShader);
 
-const renderScene = new RenderPass(scene, camera)
-const composer = new EffectComposer(renderer)
-composer.addPass(renderScene);
+// const renderScene = new RenderPass(scene, camera)
+// const composer = new EffectComposer(renderer)
+// composer.addPass(renderScene);
 
-const bloomResolution = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
-const bloomPass = new UnrealBloomPass(
-    bloomResolution,
-    1,
-    1,
-    0.2
-)
-composer.addPass(bloomPass)
+// const bloomResolution = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+// const bloomPass = new UnrealBloomPass(
+//     bloomResolution,
+//     1,
+//     1,
+//     0.2
+// )
+// composer.addPass(bloomPass)
 
-const bloomComposer = new EffectComposer(renderer);
-bloomComposer.addPass(renderScene);
-bloomComposer.addPass(bloomPass);
+// const bloomComposer = new EffectComposer(renderer);
+// bloomComposer.addPass(renderScene);
+// bloomComposer.addPass(bloomPass);
 
-const outputPass = new OutputPass();
-bloomComposer.addPass(outputPass);
-
-let mouseX = 0, mouseY = 0;
+// const outputPass = new OutputPass();
+// bloomComposer.addPass(outputPass);
 
 let windowHalfX = window.innerWidth / 2;
 let windowHalfY = window.innerHeight / 2;
 
 document.addEventListener('mousemove', onDocumentMouseMove);
 
-let cubeCamera, cubeRenderTarget;
 
 
 function getStarfield({ numStars = 1000 } = {}) {
@@ -164,7 +162,9 @@ function getStarfield({ numStars = 1000 } = {}) {
     const points = new THREE.Points(geo, mat);
     return points;
 }
-scene.add(getStarfield())
+const starfield = getStarfield();
+starfield.name = "starfield";
+scene.add(starfield)
 
 
 let sun, earth, earthObj, saturn, jupiterObj, Venus, caresObj, moon, moonObj
@@ -172,9 +172,7 @@ let planetLoadedCount = 0
 
 const loadingManager = new THREE.LoadingManager();
 
-loadingManager.onProgress = function (url, loaded, total) {
-
-}
+loadingManager.onProgress = function (url, loaded, total) { }
 let currentSolar = 1
 const loader = new GLTFLoader(loadingManager);
 
@@ -240,6 +238,7 @@ function loadSunSolar() {
                     if (planetLoadedCount == planetySun.length && oneTimeTicket == true) {
                         planetySun[2].blok.kostka.add(planetySun[3].blokObj.kostka)
                         animate()
+                        oneTimeTicket = false;
                     }
                 },
                 function (xhr) {
@@ -273,6 +272,7 @@ function loadSunSolar() {
                     if (planetLoadedCount == planetySun.length && oneTimeTicket == true) {
                         planetySun[2].blok.kostka.add(planetySun[3].blokObj.kostka)
                         animate()
+                        oneTimeTicket = false;
                     }
 
                 },
@@ -309,6 +309,7 @@ function loadSunSolar() {
                     if (planetLoadedCount == planetySun.length && oneTimeTicket == true) {
                         planetySun[2].blok.kostka.add(planetySun[3].blokObj.kostka)
                         animate()
+                        oneTimeTicket = false;
                     }
                 },
                 function (xhr) {
@@ -335,7 +336,7 @@ const planetyBlackHole = [
         isMoon: false
     },
     {
-        planeta: "pyrox", src: "/models/pyrox/pyrox.gltf",
+        planeta: "pyrox", src: "/models/pyrox/pyroxBlob.gltf",
         blok: { kostka: null, x: null, y: null, z: -5, rotation: 0.005 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: -0.001 },
         isMoon: false
@@ -365,13 +366,13 @@ const planetyBlackHole = [
         isMoon: true
     },
     {
-        planeta: "mirethul", src: "/models/mirethul/Mirethul.gltf",
+        planeta: "mirethul", src: "/models/Mirethul/Mirethul.gltf",
         blok: { kostka: null, x: -8, y: null, z: null, rotation: 0.003 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0001 },
         isMoon: false
     },
     {
-        planeta: "aerolith", src: "/models/aerolith/aerolith.gltf",
+        planeta: "aerolith", src: "/models/Aerolith/aerolith.gltf",
         blok: { kostka: null, x: 11, y: null, z: null, rotation: 0.005 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0003 },
         isMoon: false
@@ -416,6 +417,7 @@ function loadBlackHoleSolar() {
                     if (planetBlackHoleLoadedCount == planetyBlackHole.length && oneTimeTicket == true) {
 
                         animate()
+                        oneTimeTicket = false;
                     }
                 },
                 function (xhr) {
@@ -449,8 +451,8 @@ function loadBlackHoleSolar() {
                     if (el.planeta == "skarnis") el.blok.kostka.scale.set(4, 4, 4)
                     planetBlackHoleLoadedCount++
                     if (planetBlackHoleLoadedCount == planetyBlackHole.length && oneTimeTicket == true) {
-
-                        animate()
+                        animate();
+                        oneTimeTicket = false;
                     }
 
                 },
@@ -460,6 +462,8 @@ function loadBlackHoleSolar() {
 
                 },
                 function (error) {
+                    console.log(`Error loading ${el.planeta}:`, error);
+
                     console.error(error);
                 }
 
@@ -477,19 +481,19 @@ function light() {
     let lightPower = 50
 
     const pointLightY = new THREE.PointLight(0xFFFED1, 1, 20);
-    pointLightY.castShadow = true
+    pointLightY.castShadow = false
     pointLightY.shadow.bias = -0.01;
     pointLightY.position.set(0, 2, 0);
-    pointLightY.shadow.mapSize.width = 512;
-    pointLightY.shadow.mapSize.height = 512;
+    pointLightY.shadow.mapSize.width = 100;
+    pointLightY.shadow.mapSize.height = 100;
     pointLightY.power = lightPower
     scene.add(pointLightY);
 
     const pointLightY2 = new THREE.PointLight(0xFFFED1, 1, 20);
-    pointLightY2.castShadow = true
+    pointLightY2.castShadow = false
     pointLightY2.shadow.bias = -0.01;
-    pointLightY2.shadow.mapSize.width = 512;
-    pointLightY2.shadow.mapSize.height = 512;
+    pointLightY2.shadow.mapSize.width = 100;
+    pointLightY2.shadow.mapSize.height = 100;
     pointLightY2.position.set(0, -2, 0);
     pointLightY2.power = lightPower
     scene.add(pointLightY2);
@@ -497,8 +501,8 @@ function light() {
     const pointLightX = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightX.castShadow = true
     pointLightX.shadow.bias = -0.01;
-    pointLightX.shadow.mapSize.width = 512;
-    pointLightX.shadow.mapSize.height = 512;
+    pointLightX.shadow.mapSize.width = 100;
+    pointLightX.shadow.mapSize.height = 100;
     pointLightX.position.set(2, 0, 0)
     pointLightX.power = lightPower
     scene.add(pointLightX)
@@ -506,8 +510,8 @@ function light() {
     const pointLightX2 = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightX2.castShadow = true
     pointLightX2.shadow.bias = -0.01;
-    pointLightX2.shadow.mapSize.width = 512;
-    pointLightX2.shadow.mapSize.height = 512;
+    pointLightX2.shadow.mapSize.width = 100;
+    pointLightX2.shadow.mapSize.height = 100;
     pointLightX2.position.set(-2, 0, 0)
     pointLightX2.power = lightPower
     scene.add(pointLightX2)
@@ -516,8 +520,8 @@ function light() {
     const pointLightZ = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightZ.castShadow = true
     pointLightZ.shadow.bias = -0.01;
-    pointLightZ.shadow.mapSize.width = 512;
-    pointLightZ.shadow.mapSize.height = 512;
+    pointLightZ.shadow.mapSize.width = 100;
+    pointLightZ.shadow.mapSize.height = 100;
     pointLightZ.position.set(0, 0, 2)
     pointLightZ.power = lightPower
     scene.add(pointLightZ)
@@ -525,8 +529,8 @@ function light() {
     const pointLightZ2 = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightZ2.castShadow = true
     pointLightZ2.shadow.bias = -0.01;
-    pointLightZ2.shadow.mapSize.width = 512;
-    pointLightZ2.shadow.mapSize.height = 512;
+    pointLightZ2.shadow.mapSize.width = 100;
+    pointLightZ2.shadow.mapSize.height = 100;
     pointLightZ2.position.set(0, 0, -2)
     pointLightZ2.power = lightPower
     scene.add(pointLightZ2)
@@ -534,8 +538,6 @@ function light() {
     const ambientLight = new THREE.AmbientLight(0xFFFED1, 0.3);
     scene.add(ambientLight);
 }
-
-light()
 
 let prawda = true, focusCheck = true, nastepne = false
 let solarCheck = 1, nextCheck = 0, solarReset = 0, planetNo = 0
@@ -690,7 +692,7 @@ const planetsInfo = [
         informacjeOrbitalPeriod: "Orbital Period:<br10,756 days",
         informacjeTemperature: "Temperature:<br>-178°C / -288.4",
         informacjeAxialTilt: "Axial Tilt: <br>26.7°",
-        images: ["preview", "2kx2kCasperOak", "1kx1khonor2"]
+        images: []
     },
     {
         name: "Pluto",
@@ -1155,12 +1157,12 @@ function cameraMoveNegative(val) {
             document.getElementById("container").style.display = "block";
             document.getElementById("inspekcjaDane").style.display = "block";
             cameraRampUp = 0
-            camera.fov == 10
+            camera.fov = 10
         }
         if (planetNo == checkSolar() - 1) {
             solarReset = 1
         }
-
+        console.log("cameraMoveNegative", camera.fov, val);
     }
 
 }
@@ -1177,6 +1179,7 @@ function cameraMovePositive(val) {
 
         inspectFalsePositive = 0
     }
+    console.log("cameraMovePositive", camera.fov, val);
 }
 
 function cameraSettings(lookat) {
@@ -1194,8 +1197,8 @@ function hideInfo() {
     document.getElementById("inspekcjaDane").style.display = "none";
     document.getElementById("container").style.display = "none";
 }
-
-let transitionSpeed = 0.001
+hideInfo()
+let transitionSpeed = 0.005
 let transitionPercent = 0
 
 prev = 0
@@ -1207,14 +1210,14 @@ function cameraTransition(planetyPos) {
     }
     let transition = new THREE.Vector3().lerpVectors(planetyPrevPos, planetyPos, transitionPercent)
     if (transitionPercent < 1 && transitionRestart == false) {
-        transitionPercent += transitionSpeed + 0.001
-        transitionSpeed = transitionSpeed + 0.001 - (planetBarActivation ? 0.0002 : 0);
+        transitionPercent += transitionSpeed + 0.005
+        transitionSpeed = transitionSpeed + 0.005
         document.getElementById("next").disabled = true;
         if (transitionPercent > 0.4) {
-            transitionSpeed = transitionSpeed - 0.00155
+            transitionSpeed = transitionSpeed - 0.0155
         }
         if (transitionSpeed <= 0) {
-            transitionSpeed = 0.005
+            transitionSpeed = 0.05
         }
         transitionComplete = false
         camera.lookAt(transition)
@@ -1321,7 +1324,9 @@ vid.addEventListener('ended', () => {
             solarReset = 0
             orbitOnce = 0
             createPlanetBar();
-            orbitSettings()
+            light();
+            startFalldown();
+            orbitSettings();
             const firstBtn = document.getElementById("planetBar").querySelector(".planetBar-btn");
             firstBtn.classList.add("active");
             document.getElementById("planetBar").style.display = "flex";
@@ -1335,87 +1340,235 @@ vid.addEventListener('ended', () => {
 })
 function opacityFalldown() {
     if (vid.style.zIndex == -10) return // sprawdzanie czy opacityFall jest aktywne
-    vid.style.opacity = val + "%"
-    plate.style.opacity = val + "%"
+    vid.style.opacity = opacityVal + "%"
+    plate.style.opacity = opacityVal + "%"
     loadingText.style.display = "none"
     allLoaded.style.display = "block"
-    allLoaded.style.opacity = val + "%"
+    allLoaded.style.opacity = opacityVal + "%"
     if (vid.style.opacity > 0) {
-        val -= 1
+        opacityVal -= 7
     }
-    if (val == 5) {
+    if (opacityVal <= 5) {
         vid.style.zIndex = -10;
         plate.style.zIndex = -10;
         opacityFall = false;
     }
 }
 let rumpup = false
+// function nextSolar() {
+//     oneTimeTicket = true
+//     if (vid.style.opacity < 1.5) {
+//         rumpup = true
+//         document.getElementById("planetBar").style.display = "none";
+//         solarCheck = 1;
+//         loadingCompleted = false
+//         playVideo();
+//         startRumpup();
+//     }
+//     if (vid.style.opacity >= 1.5) {
+//         cameraMovePositive(userCameraMoveSpeed)
+//         checkPlanetaryState().forEach(planeta => {
+//             if (planeta.blok.kostka) unloadModels(planeta.blok.kostka);
+
+//             if (planeta.blokObj.kostka) unloadModels(planeta.blokObj.kostka);
+//         });
+//         if (currentSolar == 1) {
+//             currentSolar = 2;
+//             planetLoadedCount = 0;
+//             planetBlackHoleLoadedCount = 0;
+//             removeDivs();
+//             delPlanetBar();
+//             startFalldown();
+//             loadBlackHoleSolar();
+//             console.log(scene.children.length);
+//             console.log("Loading Black Hole Solar");
+
+//         }
+//         else if (currentSolar == 2) {
+//             currentSolar = 1;
+//             planetLoadedCount = 0;
+//             planetBlackHoleLoadedCount = 0;
+//             troll = 1
+//             removeDivs()
+//             delPlanetBar();
+//             startFalldown();
+//             loadSunSolar();
+//             console.log(scene.children.length);
+//             console.log("Loading Sun Solar");
+//         }
+//     }
+// }
+
+let isSwitchingSolar = false;
 function nextSolar() {
-    oneTimeTicket = true
-    if (vid.style.opacity < 1.5) {
-        rumpup = true
-        document.getElementById("planetBar").style.display = "none";
-        solarCheck = 1;
-        loadingCompleted = false
-        playVideo();
-    }
-    if (vid.style.opacity > 1.5) {
-        cameraMovePositive(userCameraMoveSpeed)
-        checkPlanetaryState().forEach(planeta => {
-            if (planeta.blok.kostka) unloadModels(planeta.blok.kostka);
-            if (planeta.blokObj.kostka) unloadModels(planeta.blokObj.kostka);
+    if (isSwitchingSolar) return;
+    isSwitchingSolar = true;
+    startTransitionOut(() => {
+        unloadCurrentSolar(() => {
+            loadNextSolar(() => {
+                startTransitionIn();
+                isSwitchingSolar = false;
+            });
         });
-        if (currentSolar == 1) {
-            currentSolar = 2
-            removeDivs()
-            delPlanetBar()
-            loadBlackHoleSolar();
+    });
+}
+function startTransitionOut(callback) {
+    rumpup = true;
+    playVideo();
+    startRumpup();
+    function checkOpacity() {
+        if (parseFloat(vid.style.opacity) >= 1.5) {
+            callback();
+        } else {
+            setTimeout(checkOpacity, 20);
         }
-        else if (currentSolar == 2) {
-            currentSolar = 1
-            troll = 1
-            removeDivs()
-            delPlanetBar()
-            loadSunSolar();
+    }
+    checkOpacity();
+}
+
+function unloadCurrentSolar(callback) {
+    unloadedCount = 0;
+    clearScene()
+    const totalToUnload = checkPlanetaryState().length;
+    callback();
+}
+
+function loadNextSolar(callback) {
+    oneTimeTicket = true;
+    if (currentSolar == 1) {
+        currentSolar = 2;
+        planetLoadedCount = 0;
+        planetBlackHoleLoadedCount = 0;
+        removeDivs();
+        delPlanetBar();
+        loadBlackHoleSolar();
+
+        function checkLoaded() {
+            console.log("len:" + scene.children.length);
+            if (planetBlackHoleLoadedCount >= planetyBlackHole.length) {
+                callback();
+            } else {
+                setTimeout(checkLoaded, 20);
+            }
         }
+        checkLoaded();
+    } else {
+        currentSolar = 1;
+        planetLoadedCount = 0;
+        planetBlackHoleLoadedCount = 0;
+        troll = 1;
+        removeDivs();
+        delPlanetBar();
+        loadSunSolar();
+
+        function checkLoaded() {
+            console.log("len:" + scene.children.length);
+            if (planetLoadedCount >= planetySun.length) {
+                callback();
+            } else {
+                setTimeout(checkLoaded, 20);
+            }
+        }
+        checkLoaded();
     }
 }
+
+function startTransitionIn() {
+    opacityFall = true;
+    startFalldown();
+    createPlanetBar();
+    light();
+    scene.traverse(obj => {
+        if (obj.isLight) obj.castShadow = false;
+    });
+    orbitSettings();
+    // ...other UI setup...
+}
+
 let unloadedCount = 0
 
 function unloadModels(model) {
-    scene.remove(model)
+    // Remove from parent if needed
+    if (model.parent) model.parent.remove(model);
+    scene.remove(model);
+
     model.traverse((child) => {
         if (child.isMesh) {
-            child.geometry.dispose();
-            if (child.material.isMaterial) {
-                child.material.dispose();
-            } else {
-                for (const material of child.material) {
-                    material.dispose();
+            // Dispose geometry
+            if (child.geometry) child.geometry.dispose();
+
+            // Dispose textures
+            if (child.material) {
+                if (Array.isArray(child.material)) {
+                    child.material.forEach(mat => {
+                        if (mat.map) mat.map.dispose();
+                        if (mat.lightMap) mat.lightMap.dispose();
+                        if (mat.bumpMap) mat.bumpMap.dispose();
+                        if (mat.normalMap) mat.normalMap.dispose();
+                        if (mat.aoMap) mat.aoMap.dispose();
+                        if (mat.emissiveMap) mat.emissiveMap.dispose();
+                        if (mat.specularMap) mat.specularMap.dispose();
+                        mat.dispose();
+                    });
+                } else {
+                    if (child.material.map) child.material.map.dispose();
+                    if (child.material.lightMap) child.material.lightMap.dispose();
+                    if (child.material.bumpMap) child.material.bumpMap.dispose();
+                    if (child.material.normalMap) child.material.normalMap.dispose();
+                    if (child.material.aoMap) child.material.aoMap.dispose();
+                    if (child.material.emissiveMap) child.material.emissiveMap.dispose();
+                    if (child.material.specularMap) child.material.specularMap.dispose();
+                    child.material.dispose();
                 }
             }
         }
-        unloadedCount++;
     });
+
+    // Remove references from your planet data
+    for (const planet of [...planetySun, ...planetyBlackHole]) {
+        if (planet.blok.kostka === model) planet.blok.kostka = null;
+        if (planet.blokObj.kostka === model) planet.blokObj.kostka = null;
+    }
+
+    unloadedCount++;
 }
 
+function clearScene() {
+    for (let i = scene.children.length - 1; i >= 0; i--) {
+        const obj = scene.children[i];
+        // Skip starfield by name
+        if (obj.name === "starfield") continue;
 
+        scene.remove(obj);
+        // Dispose geometry/material if mesh
+        if (obj.isMesh) {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+                if (Array.isArray(obj.material)) {
+                    obj.material.forEach(mat => mat.dispose());
+                } else {
+                    obj.material.dispose();
+                }
+            }
+        }
+    }
+}
+let opacityVal = 100
 
 function opacityRumpup() {
+    vid.style.opacity = opacityVal + "%"
+    plate.style.opacity = opacityVal + "%"
+    loadingText.style.display = "block"
+    allLoaded.style.display = "none"
+    allLoaded.style.opacity = opacityVal + "%"
     if (vid.style.opacity >= 1.5) {
         rumpup = false
         planetLoadedCount = planetLoadedCount - unloadedCount;
-        return // sprawdzanie czy opacityRumpup jest aktywne
     }
-    vid.style.opacity = val + "%"
-    plate.style.opacity = val + "%"
-    loadingText.style.display = "block"
-    allLoaded.style.display = "none"
-    allLoaded.style.opacity = val + "%"
     if (vid.style.opacity <= 1.5) {
-        val += 2
+        opacityVal += 7
     }
-    if (val >= 5) {
+    if (opacityVal >= 5) {
         vid.style.zIndex = 10;
         plate.style.zIndex = 10;
         nextSolar();
@@ -1425,13 +1578,38 @@ function opacityRumpup() {
 
 let cameraRampUp = 0, troll = 1, orbitOnce = 0, orbitConfirm = 0, wasSolarCheckZero = false
 const target = orbit.target;
-const userCameraMoveSpeed = 0.5
+const userCameraMoveSpeed = 1.5
 function checkPlanetaryState() {
     if (currentSolar == 1) {
         return planetySun
     } else if (currentSolar == 2) {
         return planetyBlackHole
     }
+}
+
+let falldownInterval = null;
+let rumpupInterval = null;
+
+function startFalldown() {
+    if (falldownInterval) clearInterval(falldownInterval);
+    falldownInterval = setInterval(() => {
+        if (!opacityFall) {
+            clearInterval(falldownInterval);
+            return;
+        }
+        opacityFalldown();
+    }, 1); // ~60fps
+}
+
+function startRumpup() {
+    if (rumpupInterval) clearInterval(rumpupInterval);
+    rumpupInterval = setInterval(() => {
+        if (!rumpup) {
+            clearInterval(rumpupInterval);
+            return;
+        }
+        opacityRumpup();
+    }, 4);
 }
 
 function animate() {
@@ -1442,12 +1620,10 @@ function animate() {
     oneTimeTicket = false
     if (planetySun[2].blok.kostka != null && planetySun[3].blokObj.kostka != null && troll == 1) earthAdd()
     if (planetyBlackHole[2].blok.kostka != null && planetyBlackHole[3].blokObj.kostka != null && pyroxAdded == false) pyroxAdd()
-    requestAnimationFrame(animate);
     cameraPosCheck()
     camera.updateProjectionMatrix()
 
-    if (opacityFall && vid.style.opacity >= 0) opacityFalldown()
-    if (rumpup && vid.style.opacity <= 1.5) opacityRumpup()
+
 
     orbitZoom.target.set(target.x, target.y, target.z)
     orbitZoom.update();
@@ -1458,6 +1634,12 @@ function animate() {
 
     if (planetBarActivation) cameraTransition(planetyPos)
 
+    if (currentSolar == 2 && camera.fov <= 20) {
+        scene.traverse(obj => {
+            if (obj.isLight) obj.castShadow = false;
+        });
+        renderer.shadowMap.enabled = false;
+    }
     camera.lookAt(planetyPos)
     if (solarCheck == 0) {
         if (!wasSolarCheckZero) {
@@ -1481,13 +1663,12 @@ function animate() {
             if (transitionComplete) {
                 // cameraSettings(planetyPos);
                 cameraMoveNegative(userCameraMoveSpeed)
-
             }
         }
         if (focusCheck && camera.fov >= 10 && camera.fov <= 45) { // oddalnie kamery po PlanetFocus
             cameraMovePositive(userCameraMoveSpeed)
-            camera.lookAt(planetyPos)
 
+            camera.lookAt(planetyPos)
             if (planetNo == 0) {
                 orbit.update();
                 // prev = 4
@@ -1502,11 +1683,13 @@ function animate() {
                 }
                 cameraTransition(planetyPos)
             }
+
         }
     }
     else if (solarCheck == 1 && camera.fov >= 10 || camera.fov < 45 && planetNo == 0) { // oddalanie kamery jak jest fov < 45 na słońcu
         wasSolarCheckZero = false;
-        cameraMovePositive(userCameraMoveSpeed)
+        if (focusCheck && camera.fov < 45) cameraMovePositive(userCameraMoveSpeed)
+
         if (camera.fov < 45) {
             cameraSettings(planetyPos)
         }
@@ -1555,7 +1738,8 @@ function animate() {
     if (orbitConfirm == 0) {
         cameraFallback(cameraOldPos)
     }
-    if (sun) {
+    if (sun && currentSolar == 1) {
+
         planetySun.forEach(el => {
 
             if (el.blok.x != null) el.blok.kostka.position.x = el.blok.x
@@ -1597,7 +1781,7 @@ function animate() {
         });
     }
 
-    if (hole) {
+    if (hole && currentSolar == 2) {
         planetyBlackHole.forEach(el => {
             if (el.blok.x != null) el.blok.kostka.position.x = el.blok.x
             if (el.blok.y != null) el.blok.kostka.position.y = el.blok.y
@@ -1631,31 +1815,13 @@ function animate() {
     }
 
     if (lowQualitySwitch == false) {
-        if (currentSolar == 2) {
-            const blackHoleObj = planetyBlackHole.find(el => el.planeta === "BlackHole");
-            if (blackHoleObj && blackHoleObj.blok.kostka) {
-                const worldPos = new THREE.Vector3();
-                blackHoleObj.blok.kostka.getWorldPosition(worldPos);
-                worldPos.project(camera);
-                lensingPass.uniforms.center.value.set(
-                    (worldPos.x + 1) / 2,
-                    (1 - worldPos.y) / 2
-                );
-            }
-            if (!composer.passes.includes(lensingPass)) {
-                composer.addPass(lensingPass);
-            }
-        } else {
-            const idx = composer.passes.indexOf(lensingPass);
-            if (idx !== -1) {
-                composer.passes.splice(idx, 1);
-            }
-        }
-        composer.render();
-    } else if (lowQualitySwitch == true) {
-        renderer.setClearColor(0x000000)
+        // composer.render();
+        renderer.render(scene, camera);
+    } else {
+        renderer.setClearColor(0x000000);
         renderer.render(scene, camera);
     }
+    requestAnimationFrame(animate);
 }
 function onDocumentMouseMove(event) {
 

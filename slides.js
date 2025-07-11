@@ -71,6 +71,8 @@ function dialClose() {
     panX = 0;
     panY = 0;
     updateDialogImgTransform();
+    const images = dialog.querySelectorAll("img");
+    images.forEach(img => img.remove());
 }
 
 function dialCloseContact() {
