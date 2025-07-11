@@ -998,7 +998,7 @@ function removeDivs() {
             toRemove[i].remove()
         }
     }
-    document.getElementById("arrowSelectArrow").style.display = "none";
+    if (document.getElementById("arrowSelectArrow")) document.getElementById("arrowSelectArrow").style.display = "none";
 }
 
 
