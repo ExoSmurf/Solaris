@@ -5,17 +5,17 @@ let slideNo = 1
 arrow.style.display = "none";
 
 showSlides(slideNo)
-function nextImg(n) {
+window.nextImg = function (n) {
     showSlides(slideNo += n);
-}
+};
 
-function prevImg(n) {
+window.prevImg = function (n) {
     showSlides(slideNo -= n);
-}
+};
 
-function currentSlide(n) {
+window.currentSlide = function (n) {
     showSlides(slideNo = n)
-}
+};
 
 function showSlides(n) {
     let i, slides = document.getElementsByClassName("slides");
