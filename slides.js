@@ -13,9 +13,9 @@ function prevImg(n) {
     showSlides(slideNo -= n);
 };
 
-function currentSlide(n) {
+window.currentSlide = function (n) {
     showSlides(slideNo = n);
-}
+};
 
 function showSlides(n) {
     let i, slides = document.getElementsByClassName("slides");
