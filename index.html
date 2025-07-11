@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>Solaris</title>
+	<link rel="stylesheet" href="main.css" />
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+		rel="stylesheet">
+	<link rel="icon" href="textures/EarthNull.ico" type="image/x-icon">
+</head>
+
+<body>
+	<div id="loadingPlane">
+		<video src="textures/0001-0200.mp4" muted="1" id="loading"></video>
+		<img src="textures/loading.png" alt="" id="loadingText">
+		<img src="textures/allLoaded.png" alt="" id="allLoaded">
+	</div>
+	<div id="main">
+
+		<p id="navi">Navigations</p>
+		<button id="next">Next</button> <br>
+		<button id="solar">Solar View</button><br>
+		<button id="nextSolar">Next Solar System</button><br>
+		<div class="lowQuality" id="lowQuality">
+			<input value="private" name="switch2" id="switch2" type="checkbox" class="switch2">
+			<label for="switch2">
+				<span class="switch-x-text2">Low Quality: </span>
+				<span class="switch-x-toggletext2">
+					<span class="switch-x-unchecked2"><span class="switch-x-hiddenlabel2">Unchecked:
+						</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Off</span>
+					<span class="switch-x-checked2"><span class="switch-x-hiddenlabel2">Checked:
+						</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;On</span>
+				</span>
+			</label>
+		</div>
+
+		<div class="focus">
+			<div class="blocked" id="blocked">
+				<span>
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-miterlimit="2"
+						stroke-linejoin="round" fill-rule="evenodd" clip-rule="evenodd">
+						<path fill-rule="nonzero"
+							d="m12.002 2.005c5.518 0 9.998 4.48 9.998 9.997 0 5.518-4.48 9.998-9.998 9.998-5.517 0-9.997-4.48-9.997-9.998 0-5.517 4.48-9.997 9.997-9.997zm0 1.5c-4.69 0-8.497 3.807-8.497 8.497s3.807 8.498 8.497 8.498 8.498-3.808 8.498-8.498-3.808-8.497-8.498-8.497zm0 7.425 2.717-2.718c.146-.146.339-.219.531-.219.404 0 .75.325.75.75 0 .193-.073.384-.219.531l-2.717 2.717 2.727 2.728c.147.147.22.339.22.531 0 .427-.349.75-.75.75-.192 0-.384-.073-.53-.219l-2.729-2.728-2.728 2.728c-.146.146-.338.219-.53.219-.401 0-.751-.323-.751-.75 0-.192.073-.384.22-.531l2.728-2.728-2.722-2.722c-.146-.147-.219-.338-.219-.531 0-.425.346-.749.75-.749.192 0 .385.073.531.219z">
+						</path>
+					</svg>
+				</span>
+
+			</div>
+			<input value="private" name="switch" id="switch" type="checkbox" class="switch">
+			<label for="switch">
+
+				<span class="switch-x-text">Planet Focus: </span>
+				<span class="switch-x-toggletext">
+					<span class="switch-x-unchecked"><span class="switch-x-hiddenlabel">Unchecked:
+						</span>&nbsp;&nbsp;Off</span>
+					<span class="switch-x-checked"><span class="switch-x-hiddenlabel">Checked:
+						</span>&nbsp;&nbsp;On</span>
+				</span>
+			</label>
+		</div>
+
+	</div>
+	<p id="note">NOTE: The build is still in beta</p>
+	<div id="container3D">
+	</div>
+	<div class="container" id="container">
+		<img src="textures/arrow.png" alt="" id="arrow" draggable="false">
+	</div>
+
+	<div id="inspekcja">
+		<div id="zdjecia">
+			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="svgArrow" id="svgRight"
+				onclick="nextImg(1)">
+				<path
+					d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z" />
+			</svg>
+			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="svgArrow" id="svgLeft"
+				onclick="prevImg(1)">
+				<path
+					d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z" />
+			</svg>
+
+		</div>
+		<dialog style="width: 90%; height: 90%;" id="dialogee">
+			<img src="" id="dialogImg" draggable="false" loading="lazy">
+			<div class="row" id="row">
+				<div id="arrowSelect">
+					<img src="textures/arrow.png" id="arrowSelectArrow" draggable="false">
+				</div>
+			</div>
+
+			<div id="naviHolders">
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="svgArrow" id="svgRight2"
+					onclick="nextImg(1)">
+					<path
+						d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z" />
+				</svg>
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+					onclick="dialClose()" class="svgArrow" id="svgClose">
+					<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+					<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+					<g id="SVGRepo_iconCarrier">
+						<path fill-rule="evenodd" clip-rule="evenodd"
+							d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z"
+							fill="#ff0000"></path>
+					</g>
+				</svg>
+
+				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="svgArrow" id="svgLeft2"
+					onclick="prevImg(1)">
+					<path
+						d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z" />
+				</svg>
+			</div>
+		</dialog>
+		<div id="podZdjeciem">
+			<div id="nameBox">
+				<div id="nameBoxImg"></div>
+				<p class="inspekcja" id="name"></p>
+			</div>
+			<div id="idBox">
+				<div id="idBoxImg"></div>
+				<p class="inspekcja" id="id"></p>
+			</div>
+			<div id="diamBox">
+				<div id="diamBoxImg"></div>
+				<p class="inspekcja" id="diam">Diamiter:</p> <br>
+				<p class="inspekcja" id="informacjeDiam"></p>
+			</div>
+			<div id="massBox">
+				<div id="massBoxImg"></div>
+				<p class="inspekcja" id="mass">Mass:</p> <br>
+				<p class="inspekcja" id="informacjeMass"></p>
+			</div>
+			<div id="ressBox">
+				<div id="ressBoxImg"></div>
+				<p class="inspekcja" id="resources">Resources:</p> <br>
+				<p class="inspekcja" id="informacjeRess"></p>
+			</div>
+			<div id="bulkBox">
+				<div id="bulkBoxImg"></div>
+				<p class="inspekcja" id="usefulData">Useful Data:</p><br>
+				<p class="inspekcja" id="informacjeOrbitalPeriod"></p>
+				<br>
+				<p class="inspekcja" id="informacjeTemperature"></p>
+				<br>
+				<p class="inspekcja" id="informacjeAxialTilt"></p>
+
+			</div>
+		</div>
+	</div>
+	</div>
+	<div id="inspekcjaDane">
+		<p class="inspekcja" id="informacje"></p>
+	</div>
+	<div id="navs">
+		<p id="mobileWelcome">Welcome to <span id="nick">Solaris</span>! For full experience please use laptop or PC</p>
+		<button id="contact" class="nav-btn">Contact</button>
+		<div id="planetBar"></div>
+		<button id="masterGallery" class="nav-btn">Gallery</button>
+	</div>
+	<dialog id="contactDialog">
+		<div id="contactText">
+			<p id="contactText">If you'd like to chat about your project, get an opinion or help, feel free to contact
+				me either:</p>
+			<div id="contactChoice">
+				<p id="contactTextChoice1">Add me to friends on Discord:<span id="nick"> 0x024_</span></p>
+
+				<p id="contactTextChoice2">Join my Discord server: <a href="https://discord.gg/ATgG96j2z6"
+						id="nick">https://discord.gg/ATgG96j2z6</a>
+					<br><br>1. Navigate to channel <span id="nick">'#ticket-creaton'.</span>
+					<br><br>2. <span id="nick">React</span> to the bot's message with set reaction.
+					<br><br>3. Now all that's left is to drop the info about terrain in need, or question.
+				</p>
+			</div>
+			<img src="textures/images/avatar/ExoRendersmall.webp" alt="Avatar" id="avatar" draggable="false">
+		</div>
+		<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+			onclick="dialCloseContact()" class="svgArrow" id="svgCloseContact">
+			<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+			<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+			<g id="SVGRepo_iconCarrier">
+				<path fill-rule="evenodd" clip-rule="evenodd"
+					d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z"
+					fill="#ff0000"></path>
+			</g>
+		</svg>
+	</dialog>
+	<dialog id="masterGalleryDialog">
+		<dialog id="galleryImageDialog">
+			<p id="zoomTip">*Try Zooming in with scroll!*</p>
+			<img id="galleryImageDialogImg" src="" alt="Gallery Preview" draggable="false" loading="lazy">
+			<div id="naviHoldersDialogImg">
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+					onclick="dialCloseGalleryImg()" class="svgArrow" id="svgCloseGallery">
+					<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+					<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+					<g id="SVGRepo_iconCarrier">
+						<path fill-rule="evenodd" clip-rule="evenodd"
+							d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z"
+							fill="#ff0000"></path>
+					</g>
+				</svg>
+			</div>
+
+		</dialog>
+		<div id="masterGalleryGrid">
+		</div>
+		<div id="naviHoldersMaster">
+			<div id="overdriveNavi">
+				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+					onclick="dialCloseGallery()" class="svgArrow" id="svgCloseGallery">
+					<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+					<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+					<g id="SVGRepo_iconCarrier">
+						<path fill-rule="evenodd" clip-rule="evenodd"
+							d="M22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12ZM8.96963 8.96965C9.26252 8.67676 9.73739 8.67676 10.0303 8.96965L12 10.9393L13.9696 8.96967C14.2625 8.67678 14.7374 8.67678 15.0303 8.96967C15.3232 9.26256 15.3232 9.73744 15.0303 10.0303L13.0606 12L15.0303 13.9696C15.3232 14.2625 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2625 15.3232 13.9696 15.0303L12 13.0607L10.0303 15.0303C9.73742 15.3232 9.26254 15.3232 8.96965 15.0303C8.67676 14.7374 8.67676 14.2625 8.96965 13.9697L10.9393 12L8.96963 10.0303C8.67673 9.73742 8.67673 9.26254 8.96963 8.96965Z"
+							fill="#ff0000"></path>
+					</g>
+				</svg>
+			</div>
+		</div>
+	</dialog>
+
+	<script src="main.js" type="module"></script>
+	<script src="slides.js"></script>
+</body>
+
+</html>

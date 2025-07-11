@@ -1,0 +1,23 @@
+{
+  "devDependencies": {
+    "@types/three": "^0.167.1",
+    "vite": "^5.4.19"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "express": "^4.19.2",
+    "framer-motion": "^11.3.30",
+    "gsap": "^3.12.5",
+    "mini-svg-data-uri": "^1.4.4",
+    "tailwind-merge": "^2.5.2",
+    "three": "^0.166.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
+
+  
+
