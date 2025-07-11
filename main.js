@@ -1,12 +1,12 @@
-import * as THREE from "https://cdn.skypack.dev/three@0.129.0/build/three.module.js";
-import { OrbitControls } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from "https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js";
-import { EffectComposer } from '/node_modules/three/examples/jsm/postprocessing/EffectComposer';
-import { RenderPass } from '/node_modules/three/examples/jsm/postprocessing/RenderPass';
-import { UnrealBloomPass } from '/node_modules/three/examples/jsm/postprocessing/UnrealBloomPass';
-import { OutputPass } from '/node_modules/three/examples/jsm/postprocessing/OutputPass';
-import { TrackballControls } from '/node_modules/three/examples/jsm/controls/TrackballControls';
-import { ShaderPass } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/postprocessing/ShaderPass.js';
+import * as THREE from 'three';
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); //tlo alpha na true zeby tlo widac bylo przed zaladowaniem
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -96,8 +96,9 @@ const renderScene = new RenderPass(scene, camera)
 const composer = new EffectComposer(renderer)
 composer.addPass(renderScene);
 
+const bloomResolution = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
 const bloomPass = new UnrealBloomPass(
-    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    bloomResolution,
     1,
     1,
     0.2
@@ -479,12 +480,16 @@ function light() {
     pointLightY.castShadow = true
     pointLightY.shadow.bias = -0.01;
     pointLightY.position.set(0, 2, 0);
+    pointLightY.shadow.mapSize.width = 512;
+    pointLightY.shadow.mapSize.height = 512;
     pointLightY.power = lightPower
     scene.add(pointLightY);
 
     const pointLightY2 = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightY2.castShadow = true
     pointLightY2.shadow.bias = -0.01;
+    pointLightY2.shadow.mapSize.width = 512;
+    pointLightY2.shadow.mapSize.height = 512;
     pointLightY2.position.set(0, -2, 0);
     pointLightY2.power = lightPower
     scene.add(pointLightY2);
@@ -492,6 +497,8 @@ function light() {
     const pointLightX = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightX.castShadow = true
     pointLightX.shadow.bias = -0.01;
+    pointLightX.shadow.mapSize.width = 512;
+    pointLightX.shadow.mapSize.height = 512;
     pointLightX.position.set(2, 0, 0)
     pointLightX.power = lightPower
     scene.add(pointLightX)
@@ -499,6 +506,8 @@ function light() {
     const pointLightX2 = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightX2.castShadow = true
     pointLightX2.shadow.bias = -0.01;
+    pointLightX2.shadow.mapSize.width = 512;
+    pointLightX2.shadow.mapSize.height = 512;
     pointLightX2.position.set(-2, 0, 0)
     pointLightX2.power = lightPower
     scene.add(pointLightX2)
@@ -507,6 +516,8 @@ function light() {
     const pointLightZ = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightZ.castShadow = true
     pointLightZ.shadow.bias = -0.01;
+    pointLightZ.shadow.mapSize.width = 512;
+    pointLightZ.shadow.mapSize.height = 512;
     pointLightZ.position.set(0, 0, 2)
     pointLightZ.power = lightPower
     scene.add(pointLightZ)
@@ -514,6 +525,8 @@ function light() {
     const pointLightZ2 = new THREE.PointLight(0xFFFED1, 1, 20);
     pointLightZ2.castShadow = true
     pointLightZ2.shadow.bias = -0.01;
+    pointLightZ2.shadow.mapSize.width = 512;
+    pointLightZ2.shadow.mapSize.height = 512;
     pointLightZ2.position.set(0, 0, -2)
     pointLightZ2.power = lightPower
     scene.add(pointLightZ2)
@@ -1091,6 +1104,8 @@ masterGallery.addEventListener("click", () => {
     masterGalleryDialog.style.display = "flex";
     naviHolder.style.display = "flex";
 
+    masterGalleryGrid.innerHTML = "";
+
     masterGalleryImages.forEach((imgPath, idx) => {
         const img = document.createElement("img");
         img.src = imgPath;
@@ -1287,7 +1302,14 @@ vid.addEventListener('ended', () => {
             opacityFall = true
             rumpup = false
             if (currentSolar == 1) earthAdd();
-            if (currentSolar == 2) pyroxAdd();
+            if (currentSolar == 2) {
+                pyroxAdd();
+                renderer.toneMappingExposure = BLACKHOLE_EXPOSURE;
+
+                scene.traverse(obj => {
+                    if (obj.isLight) obj.power = BLACKHOLE_LIGHT_POWER;
+                });
+            }
             transitionRestartCamera = false
             transitionRestart = false
             focusCheck = true
@@ -1608,22 +1630,13 @@ function animate() {
             }
         });
     }
-    if (currentSolar == 2) {
-        renderer.toneMappingExposure = BLACKHOLE_EXPOSURE;
 
-        scene.traverse(obj => {
-            if (obj.isLight) obj.power = BLACKHOLE_LIGHT_POWER;
-        });
 
-    } else {
-        renderer.toneMappingExposure = DEFAULT_EXPOSURE;
-        scene.traverse(obj => {
-            if (obj.isLight) obj.power = lightPower;
-        });
-        // ...normal rendering...
-    }
 
-    // ...existing code...
+
+
+
+
 
     if (lowQualitySwitch == false) {
         if (currentSolar == 2) {
@@ -1664,6 +1677,7 @@ window.addEventListener("resize", function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    bloomPass.setSize(window.innerWidth / 2, window.innerHeight / 2)
     composer.setSize(window.innerWidth, window.innerHeight);
 });
 
