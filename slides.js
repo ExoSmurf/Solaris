@@ -4,20 +4,18 @@ let slideNo = 1
 
 arrow.style.display = "none";
 
-console.log('slides.js loaded');
-
 showSlides(slideNo)
-window.nextImg = function (n) {
+function nextImg(n) {
     showSlides(slideNo += n);
 };
 
-window.prevImg = function (n) {
+function prevImg(n) {
     showSlides(slideNo -= n);
 };
 
-window.currentSlide = function (n) {
-    showSlides(slideNo = n)
-};
+function currentSlide(n) {
+    showSlides(slideNo = n);
+}
 
 function showSlides(n) {
     let i, slides = document.getElementsByClassName("slides");

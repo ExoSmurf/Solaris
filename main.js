@@ -8,7 +8,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
-import './slides.js';
+// import './slides.js';
 
 const renderer = new THREE.WebGLRenderer({}); //tlo alpha na true zeby tlo widac bylo przed zaladowaniem
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -330,6 +330,7 @@ function loadSunSolar() {
 
 }
 loadSunSolar()
+
 const planetyBlackHole = [
     {
         planeta: "BlackHole", src: "/models/blackhole/blackhole.gltf",
@@ -872,6 +873,8 @@ function info() {
         }
     }
 }
+
+
 //img musi byc na srodku by default
 function setupDialogImgZoomPan(dialogImg) {
     dialogImg.dialogZoom = 1;
