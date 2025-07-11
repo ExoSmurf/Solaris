@@ -8,7 +8,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 
-import './dist/slides.js';
+import './slides.js';
 
 const renderer = new THREE.WebGLRenderer({}); //tlo alpha na true zeby tlo widac bylo przed zaladowaniem
 renderer.setPixelRatio(window.devicePixelRatio);
