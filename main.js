@@ -180,37 +180,37 @@ const loader = new GLTFLoader(loadingManager);
 
 const planetySun = [
     {
-        planeta: "sun", src: "models/sun/sun.gltf",
+        planeta: "sun", src: "/models/sun/sun.gltf",
         blok: { kostka: null, x: 0, y: 0, z: 0, rotation: 0.01 },
         blokObj: { kostka: null, x: null, y: null, z: null, rotation: null },
         isMoon: false
     },
     {
-        planeta: "Venus", src: "models/Venus/Venus.gltf",
+        planeta: "Venus", src: "/models/Venus/Venus.gltf",
         blok: { kostka: null, x: 3, y: null, z: null, rotation: 0.01 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.00035 },
         isMoon: false
     },
     {
-        planeta: "earth", src: "models/earth/earth.gltf",
+        planeta: "earth", src: "/models/earth/earth.gltf",
         blok: { kostka: null, x: -9, y: null, z: null, rotation: 0.01 },
         blokObj: { kostka: null, x: 0, y: null, z: null, rotation: 0.005 },
         isMoon: false,
     },
     {
-        planeta: "moon", src: "models/moon/moon.gltf",
+        planeta: "moon", src: "/models/moon/moon.gltf",
         blok: { kostka: null, x: 1, y: null, z: null, rotation: 0.02 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: -0.001 },
         isMoon: true
     },
     {
-        planeta: "saturn", src: "models/saturn/saturn.gltf",
+        planeta: "saturn", src: "/models/saturn/saturn.gltf",
         blok: { kostka: null, x: 17, y: null, z: null, rotation: 0.01 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0008 },
         isMoon: false
     },
     {
-        planeta: "pluto", src: "models/pluto/pluto.gltf",
+        planeta: "pluto", src: "/models/pluto/pluto.gltf",
         blok: { kostka: null, x: -24, y: null, z: null, rotation: 0.01 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0005 },
         isMoon: false
@@ -329,61 +329,61 @@ function loadSunSolar() {
 loadSunSolar()
 const planetyBlackHole = [
     {
-        planeta: "BlackHole", src: "models/blackhole/blackhole.gltf",
+        planeta: "BlackHole", src: "/models/blackhole/blackhole.gltf",
         blok: { kostka: null, x: 0, y: 0, z: 0, rotation: 0.001 },
         blokObj: { kostka: null, x: null, y: null, z: null, rotation: null },
         isMoon: false
     },
     {
-        planeta: "pyrox", src: "models/pyrox/pyrox.gltf",
+        planeta: "pyrox", src: "/models/pyrox/pyrox.gltf",
         blok: { kostka: null, x: null, y: null, z: -5, rotation: 0.005 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: -0.001 },
         isMoon: false
     },
     {
-        planeta: "pyroxBlob", src: "models/pyrox/pyroxBlob.gltf",
+        planeta: "pyroxBlob", src: "/models/pyrox/pyroxBlob.gltf",
         blok: { kostka: null, x: 0.5, y: null, z: null, rotation: 0.005 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.001 },
         isMoon: true
     },
     {
-        planeta: "pyroxBlob2", src: "models/pyrox/pyroxBlob.gltf",
+        planeta: "pyroxBlob2", src: "/models/pyrox/pyroxBlob.gltf",
         blok: { kostka: null, x: -0.6, y: null, z: -0.7, rotation: 0.005 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.001 },
         isMoon: true
     },
     {
-        planeta: "pyroxBlob3", src: "models/pyrox/pyroxBlob.gltf",
+        planeta: "pyroxBlob3", src: "/models/pyrox/pyroxBlob.gltf",
         blok: { kostka: null, x: 0.6, y: null, z: -0.7, rotation: 0.002 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: -0.0001 },
         isMoon: true
     },
     {
-        planeta: "pyroxBlob4", src: "models/pyrox/pyroxBlob.gltf",
+        planeta: "pyroxBlob4", src: "/models/pyrox/pyroxBlob.gltf",
         blok: { kostka: null, x: 0.4, y: null, z: 0.8, rotation: 0.001 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.003 },
         isMoon: true
     },
     {
-        planeta: "mirethul", src: "models/mirethul/Mirethul.gltf",
+        planeta: "mirethul", src: "/models/mirethul/Mirethul.gltf",
         blok: { kostka: null, x: -8, y: null, z: null, rotation: 0.003 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0001 },
         isMoon: false
     },
     {
-        planeta: "aerolith", src: "models/aerolith/aerolith.gltf",
+        planeta: "aerolith", src: "/models/aerolith/aerolith.gltf",
         blok: { kostka: null, x: 11, y: null, z: null, rotation: 0.005 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0003 },
         isMoon: false
     },
     {
-        planeta: "skarnis", src: "models/skarnis/skarnis.gltf",
+        planeta: "skarnis", src: "/models/skarnis/skarnis.gltf",
         blok: { kostka: null, x: null, y: null, z: 15, rotation: 0 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.001 },
         isMoon: false
     },
     {
-        planeta: "neptune", src: "models/neptune/neptune.gltf",
+        planeta: "neptune", src: "/models/neptune/neptune.gltf",
         blok: { kostka: null, x: null, y: 0, z: 19, rotation: 0.007 },
         blokObj: { kostka: null, x: null, y: null, z: null, rotation: 0.0002 },
         isMoon: false
@@ -819,7 +819,7 @@ function info() {
             const createDiv = document.createElement("div")
             const createImg = document.createElement("img")
 
-            createImg.src = "textures/images/" + planet.images[i] + ".webp"
+            createImg.src = "/textures/images/" + planet.images[i] + ".webp"
 
             createDiv.classList.add("slides", "removable")
             // createDiv.id = "removable"
@@ -837,7 +837,7 @@ function info() {
             const createDivDialog = document.createElement("div")
             const createImgDialog = document.createElement("img")
 
-            createImgDialog.src = "textures/images/" + planet.images[i] + ".webp"
+            createImgDialog.src = "/textures/images/" + planet.images[i] + ".webp"
 
             createDivDialog.classList.add("column", "removable")
             // createDivDialog.id = "removable"
@@ -870,7 +870,6 @@ function info() {
 }
 //img musi byc na srodku by default
 function setupDialogImgZoomPan(dialogImg) {
-    // Always reset state when setting up
     dialogImg.dialogZoom = 1;
     dialogImg.panX = 0;
     dialogImg.panY = 0;
@@ -946,7 +945,7 @@ function setupDialogImgZoomPan(dialogImg) {
         dialogImg.panX = e.touches[0].clientX - dragStartX;
         dialogImg.panY = e.touches[0].clientY - dragStartY;
         updateDialogImgTransform();
-        e.preventDefault(); // Prevents scrolling while dragging
+        e.preventDefault();
     }, { passive: false });
 
     window.addEventListener("touchend", function () {
@@ -998,17 +997,17 @@ function removeDivs() {
 
 
 const planetPreviewMap = {
-    sun: "textures/images/previews/sun.webp",
-    venus: "textures/images/previews/venus.webp",
-    earth: "textures/images/previews/earth.webp",
-    saturn: "textures/images/previews/saturn.webp",
-    pluto: "textures/images/previews/pluto.webp",
-    blackhole: "textures/images/previews/blackhole.webp",
-    pyrox: "textures/images/previews/pyrox.webp",
-    mirethul: "textures/images/previews/mirethul.webp",
-    aerolith: "textures/images/previews/aerolith.webp",
-    skarnis: "textures/images/previews/skarnis.webp",
-    neptune: "textures/images/previews/neptune.webp",
+    sun: "/textures/images/previews/sun.webp",
+    venus: "/textures/images/previews/venus.webp",
+    earth: "/textures/images/previews/earth.webp",
+    saturn: "/textures/images/previews/saturn.webp",
+    pluto: "/textures/images/previews/pluto.webp",
+    blackhole: "/textures/images/previews/blackhole.webp",
+    pyrox: "/textures/images/previews/pyrox.webp",
+    mirethul: "/textures/images/previews/mirethul.webp",
+    aerolith: "/textures/images/previews/aerolith.webp",
+    skarnis: "/textures/images/previews/skarnis.webp",
+    neptune: "/textures/images/previews/neptune.webp",
 };
 let planetBarActivation = false;
 function createPlanetBar() {
@@ -1038,7 +1037,7 @@ function createPlanetBar() {
 
         const img = document.createElement("img");
         const planetKey = (planet.planeta || planet.name || "").toLowerCase();
-        img.src = planetPreviewMap[planetKey] || "textures/images/previews/default.webp";
+        img.src = planetPreviewMap[planetKey] || "/textures/images/previews/default.webp";
         img.alt = planet.name || planet.planeta || "Planet";
         img.style.marginRight = "8px";
         img.style.alignSelf = "center";
@@ -1087,7 +1086,7 @@ contact.addEventListener("click", () => {
 
 const masterGalleryImages = planetsInfo
     .filter(planet => Array.isArray(planet.images) && planet.images.length > 0)
-    .flatMap(planet => planet.images.map(image => 'textures/images/' + image + '.webp'));
+    .flatMap(planet => planet.images.map(image => '/textures/images/' + image + '.webp'));
 console.log("Master Gallery Images:", masterGalleryImages);
 
 const masterGallery = document.getElementById("masterGallery");
@@ -1630,13 +1629,6 @@ function animate() {
             }
         });
     }
-
-
-
-
-
-
-
 
     if (lowQualitySwitch == false) {
         if (currentSolar == 2) {
