@@ -339,7 +339,7 @@ const planetyBlackHole = [
         isMoon: false
     },
     {
-        planeta: "pyrox", src: "/models/pyrox/pyroxBlob.gltf",
+        planeta: "pyrox", src: "/models/pyrox/pyrox.gltf",
         blok: { kostka: null, x: null, y: null, z: -5, rotation: 0.005 },
         blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: -0.001 },
         isMoon: false
@@ -1413,6 +1413,8 @@ function nextSolar() {
             loadNextSolar(() => {
                 startTransitionIn();
                 isSwitchingSolar = false;
+                const images = document.getElementById("dialogee").querySelectorAll("img");
+                images.forEach(img => img.remove())
             });
         });
     });
