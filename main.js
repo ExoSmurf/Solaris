@@ -8,6 +8,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { select } from 'three/tsl';
+import { remove } from 'three/examples/jsm/libs/tween.module.js';
 
 // import './slides.js';
 
@@ -799,6 +800,7 @@ function planetInfoSize() {
 }
 function info() {
     const planet = planetsInfo[planetInfoSize()];
+    removeDivs();
     if (planet) {
         nameElement.innerText = planet.name;
         infElement.innerText = planet.informacje
@@ -1064,10 +1066,23 @@ function delPlanetBar() {
     bar.style.display = "none";
 }
 
+let disabledOverdrive = false;
+function setPlanetBarButtonsDisabled(disabled) {
+    disabledOverdrive = true;
+    document.querySelectorAll('.planetBar-btn').forEach(btn => {
+        if (disabled) {
+            btn.classList.add('disabled');
+        } else {
+            btn.classList.remove('disabled');
+        }
+    });
+}
+
 function goToPlanet(newIndex) {
     if ((newIndex == 0 || newIndex == planetySun.length + 1) && camera.fov < 45) {
         return;
     } // Prevent going to the first planet in the solar system or the first black hole
+    setPlanetBarButtonsDisabled(true);
     solarCheck = 0;
     prev = planetNo;
     planetNo = currentSolar == 1 ? newIndex : newIndex - planetySun.length;
@@ -1102,15 +1117,14 @@ function updatePlanetBarActive() {
         if (camera.fov < 45 && buttons[0]) {
             buttons[0].classList.add("disabled");
             console.log("disabled");
-
-        } else if (buttons[0]) {
+        } else if (buttons[0] && !disabledOverdrive) {
             buttons[0].classList.remove("disabled");
         }
     }
     if (currentSolar == 2) {
         if (camera.fov < 45 && buttons[0]) {
             buttons[0].classList.add("disabled");
-        } else if (buttons[0]) {
+        } else if (buttons[0] && !disabledOverdrive) {
             buttons[0].classList.remove("disabled");
         }
     }
@@ -1296,10 +1310,13 @@ function cameraTransition(planetyPos) {
         transitionComplete = true;
         planetBarActivation = false;
         isPlanetBarTransition = false;
+        disabledOverdrive = false;
         orbitConfirm = 1;
         document.getElementById("next").disabled = false;
         document.getElementById("switch").disabled = false;
         document.getElementById("solar").disabled = false;
+        setPlanetBarButtonsDisabled(false);
+        updatePlanetBarActive();
         camera.lookAt(planetyPos);
     }
     return transitionComplete

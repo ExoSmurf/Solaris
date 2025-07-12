@@ -1292,6 +1292,11 @@ header h1 {
     background: transparent;
 }
 
+.planetBar-btn:hover .planetBar-name,
+.planetBar-btn.active .planetBar-name {
+    opacity: 1;
+}
+
 .planetBar-btn.disabled:hover .planetBar-name,
 .planetBar-btn.disabled.active .planetBar-name {
     opacity: 1 !important;
