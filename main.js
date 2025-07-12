@@ -59,48 +59,12 @@ orbitZoom.noRotate = true;
 orbitZoom.noPan = true;
 orbitZoom.noZoom = false;
 orbitZoom.zoomSpeed = 1;
-const GravitationalLensingShader = {
-    uniforms: {
-        "tDiffuse": { value: null },
-        "strength": { value: 0.4 },
-        "center": { value: new THREE.Vector2(0, 0) },
-        "radius": { value: 0.5 }
-    },
-    vertexShader: `
-        varying vec2 vUv;
-        void main() {
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-        }
-    `,
-    fragmentShader: `
-        uniform sampler2D tDiffuse;
-        uniform float strength;
-        uniform vec2 center;
-        uniform float radius;
-        varying vec2 vUv;
-        void main() {
-            vec2 uv = vUv;
-            vec2 toCenter = uv - center;
-            float dist = length(toCenter);
-            float effect = 1.0;
-            if(dist < radius) {
-                float curve = strength * pow((radius - dist) / radius, 2.0);
-                effect += curve;
-            }
-            uv = center + toCenter * effect;
-            gl_FragColor = texture2D(tDiffuse, uv);
-        }
-    `
-};
-
-const lensingPass = new ShaderPass(GravitationalLensingShader);
 
 const renderScene = new RenderPass(scene, camera)
 const composer = new EffectComposer(renderer)
 composer.addPass(renderScene);
 
-const bloomResolution = new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2);
+const bloomResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 const bloomPass = new UnrealBloomPass(
     bloomResolution,
     1,
@@ -479,66 +443,72 @@ function loadBlackHoleSolar() {
 document.getElementById("container3D").appendChild(renderer.domElement);
 // const axesHelper = new THREE.AxesHelper(100000);
 // scene.add(axesHelper)
-let lightDistance = 250
+let lightDistance = 100
 function light() {
-    let lightPower = 50
+    let lightPower = 120
 
-    const pointLightY = new THREE.PointLight(0xFFFED1, 1, 20);
-    pointLightY.castShadow = false
+    const pointLightY = new THREE.PointLight(0xFFFED1, 1, 30);
+    pointLightY.castShadow = true
     pointLightY.shadow.bias = -0.01;
     pointLightY.position.set(0, 2, 0);
-    pointLightY.shadow.mapSize.width = 250;
-    pointLightY.shadow.mapSize.height = 250;
+    pointLightY.shadow.mapSize.width = lightDistance;
+    pointLightY.shadow.mapSize.height = lightDistance;
+    pointLightY.distance = lightDistance
     pointLightY.power = lightPower
     scene.add(pointLightY);
 
-    const pointLightY2 = new THREE.PointLight(0xFFFED1, 1, 20);
-    pointLightY2.castShadow = false
+    const pointLightY2 = new THREE.PointLight(0xFFFED1, 1, 30);
+    pointLightY2.castShadow = true
     pointLightY2.shadow.bias = -0.01;
-    pointLightY2.shadow.mapSize.width = 250;
-    pointLightY2.shadow.mapSize.height = 250;
+    pointLightY2.shadow.mapSize.width = lightDistance;
+    pointLightY2.shadow.mapSize.height = lightDistance;
     pointLightY2.position.set(0, -2, 0);
     pointLightY2.power = lightPower
+    pointLightY2.distance = lightDistance
     scene.add(pointLightY2);
 
-    const pointLightX = new THREE.PointLight(0xFFFED1, 1, 20);
+    const pointLightX = new THREE.PointLight(0xFFFED1, 1, 30);
     pointLightX.castShadow = true
     pointLightX.shadow.bias = -0.01;
-    pointLightX.shadow.mapSize.width = 250;
-    pointLightX.shadow.mapSize.height = 250;
+    pointLightX.shadow.mapSize.width = lightDistance;
+    pointLightX.shadow.mapSize.height = lightDistance;
+    pointLightX.distance = lightDistance
     pointLightX.position.set(2, 0, 0)
     pointLightX.power = lightPower
     scene.add(pointLightX)
 
-    const pointLightX2 = new THREE.PointLight(0xFFFED1, 1, 20);
+    const pointLightX2 = new THREE.PointLight(0xFFFED1, 1, 30);
     pointLightX2.castShadow = true
     pointLightX2.shadow.bias = -0.01;
-    pointLightX2.shadow.mapSize.width = 250;
-    pointLightX2.shadow.mapSize.height = 250;
+    pointLightX2.shadow.mapSize.width = lightDistance;
+    pointLightX2.shadow.mapSize.height = lightDistance;
     pointLightX2.position.set(-2, 0, 0)
+    pointLightX2.distance = lightDistance
     pointLightX2.power = lightPower
     scene.add(pointLightX2)
 
 
-    const pointLightZ = new THREE.PointLight(0xFFFED1, 1, 20);
+    const pointLightZ = new THREE.PointLight(0xFFFED1, 1, 30);
     pointLightZ.castShadow = true
     pointLightZ.shadow.bias = -0.01;
-    pointLightZ.shadow.mapSize.width = 250;
-    pointLightZ.shadow.mapSize.height = 250;
+    pointLightZ.shadow.mapSize.width = lightDistance;
+    pointLightZ.shadow.mapSize.height = lightDistance;
     pointLightZ.position.set(0, 0, 2)
+    pointLightZ.distance = lightDistance
     pointLightZ.power = lightPower
     scene.add(pointLightZ)
 
-    const pointLightZ2 = new THREE.PointLight(0xFFFED1, 1, 20);
+    const pointLightZ2 = new THREE.PointLight(0xFFFED1, 1, 30);
     pointLightZ2.castShadow = true
     pointLightZ2.shadow.bias = -0.01;
-    pointLightZ2.shadow.mapSize.width = 250;
-    pointLightZ2.shadow.mapSize.height = 250;
+    pointLightZ2.shadow.mapSize.width = lightDistance;
+    pointLightZ2.shadow.mapSize.height = lightDistance;
+    pointLightZ2.distance = lightDistance
     pointLightZ2.position.set(0, 0, -2)
     pointLightZ2.power = lightPower
     scene.add(pointLightZ2)
 
-    const ambientLight = new THREE.AmbientLight(0xFFFED1, 0.3);
+    const ambientLight = new THREE.AmbientLight(0xFFFED1, 0.1);
     scene.add(ambientLight);
 }
 
@@ -583,6 +553,8 @@ function next() {
     if (camera.fov == 10) {
         nextCheck = 1
     }
+    if (currentSolar == 2 && planetNo == 2) { planetNo = 6; prev = 1; }
+    if (currentSolar == 1 && planetNo == 3) { planetNo = 4; prev = 2; }
     document.getElementById("solar").disabled = false
     updatePlanetBarActive();
 }
@@ -1005,7 +977,6 @@ function removeDivs() {
 
     if (planetsInfo[planetNo - 1]) {
         for (let i = 0; i < toRemove.length; i++) {
-
             toRemove[i].remove()
         }
     }
@@ -1099,7 +1070,22 @@ function updatePlanetBarActive() {
     document.querySelectorAll(".planetBar-btn").forEach(b => b.classList.remove("active"));
     const bar = document.getElementById("planetBar");
     const buttons = bar.querySelectorAll(".planetBar-btn");
-    if (buttons[planetNo]) buttons[planetNo].classList.add("active");
+
+    // Find the index of the current planetNo in the non-moon list
+    let globalIndexes = [];
+    if (currentSolar == 1) {
+        for (let i = 0; i < planetySun.length; i++) {
+            if (!planetySun[i].isMoon) globalIndexes.push(i);
+        }
+    } else {
+        for (let i = 0; i < planetyBlackHole.length; i++) {
+            if (!planetyBlackHole[i].isMoon) globalIndexes.push(i + planetySun.length);
+        }
+    }
+    const activeIdx = globalIndexes.indexOf(
+        currentSolar == 1 ? planetNo : planetNo + planetySun.length
+    );
+    if (buttons[activeIdx]) buttons[activeIdx].classList.add("active");
 }
 
 const contact = document.getElementById("contact");
@@ -1336,11 +1322,6 @@ vid.addEventListener('ended', () => {
             if (currentSolar == 1) earthAdd();
             if (currentSolar == 2) {
                 pyroxAdd();
-                // renderer.toneMappingExposure = BLACKHOLE_EXPOSURE;
-
-                // scene.traverse(obj => {
-                //     if (obj.isLight) obj.power = BLACKHOLE_LIGHT_POWER;
-                // });
             }
             transitionRestartCamera = false
             transitionRestart = false
@@ -1437,8 +1418,8 @@ function nextSolar() {
             loadNextSolar(() => {
                 startTransitionIn();
                 isSwitchingSolar = false;
-                const images = document.getElementById("dialogee").querySelectorAll("img");
-                images.forEach(img => img.remove())
+                // const images = document.getElementById("dialogee").querySelectorAll("img");
+                // images.forEach(img => img.remove())
                 updatePlanetBarActive();
             });
         });
@@ -1461,7 +1442,10 @@ function startTransitionOut(callback) {
 
 function unloadCurrentSolar(callback) {
     unloadedCount = 0;
-    clearScene()
+    clearScene();
+    removeDivs();
+    const dialogImg = document.getElementById("dialogImg");
+    if (dialogImg) dialogImg.src = "";
     const totalToUnload = checkPlanetaryState().length;
     callback();
 }
@@ -1472,6 +1456,8 @@ function loadNextSolar(callback) {
         currentSolar = 2;
         planetLoadedCount = 0;
         planetBlackHoleLoadedCount = 0;
+        prev = 0;
+        planetNo = 0;
         removeDivs();
         delPlanetBar();
         loadBlackHoleSolar();
@@ -1489,6 +1475,8 @@ function loadNextSolar(callback) {
         currentSolar = 1;
         planetLoadedCount = 0;
         planetBlackHoleLoadedCount = 0;
+        prev = 0;
+        planetNo = 0;
         troll = 1;
         removeDivs();
         delPlanetBar();
@@ -1511,9 +1499,9 @@ function startTransitionIn() {
     // startFalldown();
     createPlanetBar();
     light();
-    scene.traverse(obj => {
-        if (obj.isLight) obj.castShadow = false;
-    });
+    // scene.traverse(obj => {
+    //     if (obj.isLight) obj.castShadow = false;
+    // });
     orbitSettings();
     planetNo = 0;
     info();
@@ -1671,10 +1659,10 @@ function animate() {
     if (planetBarActivation) cameraTransition(planetyPos)
 
     if (currentSolar == 2 && camera.fov <= 20) {
-        scene.traverse(obj => {
-            if (obj.isLight) obj.castShadow = false;
-        });
-        renderer.shadowMap.enabled = false;
+        // scene.traverse(obj => {
+        //     if (obj.isLight) obj.castShadow = false;
+        // });
+        // renderer.shadowMap.enabled = false;
     }
     camera.lookAt(planetyPos)
     if (solarCheck == 0) {
@@ -1870,7 +1858,6 @@ function onDocumentMouseMove(event) {
     mouseY = (event.clientY - windowHalfY) / 90;
 
 }
-
 
 window.addEventListener("resize", function () {
     camera.aspect = window.innerWidth / window.innerHeight;
