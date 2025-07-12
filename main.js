@@ -534,7 +534,6 @@ function checkSolar() {
 
 function next() {
     removeDivs()
-    // cameraFallback(cameraOldPos)
     if (camera.position.x != 20 || camera.position.y != 20 || camera.position.z != 20) transitionCameraToDefault();
     transitionRestart = false
     orbitOnce = 0
@@ -568,6 +567,7 @@ function next() {
     updatePlanetBarActive();
 }
 function solar() {
+    if (!transitionComplete) return;
     transitionRestartCamera = false
     transitionRestart = false
     focusCheck = true
@@ -594,6 +594,7 @@ function solar() {
 
 let focusFalsePositive = 0
 function focus() {
+    if (!transitionComplete) return;
     cameraPosCheck()
     focusFalsePositive += 1
     if (solarCheck == 1) {
@@ -628,7 +629,10 @@ const buttons = [
 
 buttons.forEach(button => {
     const element = document.getElementById(button.id);
-    element.addEventListener("click", button.handler);
+    element.addEventListener("click", function () {
+        if (!transitionComplete) return;
+        button.handler();
+    });
 });
 
 document.getElementById("switch").addEventListener("change", focus)
@@ -1248,6 +1252,8 @@ let transitionPercent = 0
 
 prev = 0
 function cameraTransition(planetyPos) {
+    document.getElementById("switch").disabled = true;
+    document.getElementById("solar").disabled = true;
     if (checkPlanetaryState()[prev]) {
         planetyPrevPos = checkPlanetaryState()[prev].blok.kostka.getWorldPosition(new THREE.Vector3());
     } else {
@@ -1275,6 +1281,8 @@ function cameraTransition(planetyPos) {
         planetBarActivation = false
         orbitConfirm = 1
         document.getElementById("next").disabled = false;
+        document.getElementById("switch").disabled = false;
+        document.getElementById("solar").disabled = false;
         camera.lookAt(planetyPos)
 
     }
@@ -1802,7 +1810,6 @@ function animate() {
     if (solarCheck == 1 && planetNo == 0 && focusCheck == true && focusFalsePositive == 0 && camera.fov == 45) {
         if (transitionComplete) {
             orbit.update()
-
         }
         else {
             cameraTransition(planetyPos)

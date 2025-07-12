@@ -978,6 +978,13 @@ header h1 {
     left: 13%;
 }
 
+.switch:disabled+label,
+.switch:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
 .focus .switch+label::before,
 .focus .switch+label::after {
     content: '';
@@ -1562,6 +1569,12 @@ header h1 {
     border-radius: 10px;
     border: 1px solid #726a5e;
     background-color: #0f1011d9;
+}
+
+button:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
 }
 
 @media (max-width: 1000px) {
