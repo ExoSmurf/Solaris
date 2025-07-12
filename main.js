@@ -122,7 +122,7 @@ document.addEventListener('mousemove', onDocumentMouseMove);
 
 
 
-function getStarfield({ numStars = 1000 } = {}) {
+function getStarfield({ numStars = 200 } = {}) {
     function randomSpherePoint() {
         const radius = Math.random() * 25 + 35;
         const u = Math.random();
@@ -158,7 +158,7 @@ function getStarfield({ numStars = 1000 } = {}) {
         size: 0.2,
         vertexColors: true,
         map: new THREE.TextureLoader().load(
-            "./textures/circle.png"
+            "./textures/circle.webp"
         ),
     });
     const points = new THREE.Points(geo, mat);
@@ -1543,11 +1543,11 @@ function unloadModels(model) {
 function clearScene() {
     for (let i = scene.children.length - 1; i >= 0; i--) {
         const obj = scene.children[i];
-        // Skip starfield by name
+
         if (obj.name === "starfield") continue;
 
         scene.remove(obj);
-        // Dispose geometry/material if mesh
+
         if (obj.isMesh) {
             if (obj.geometry) obj.geometry.dispose();
             if (obj.material) {
