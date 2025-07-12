@@ -1086,7 +1086,7 @@ header h1 {
     position: absolute;
     z-index: 6;
     transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1);
-    display: block;
+    display: none;
     margin-left: 29px;
 }
 
@@ -1292,9 +1292,26 @@ header h1 {
     background: transparent;
 }
 
-.planetBar-btn:hover .planetBar-name,
-.planetBar-btn.active .planetBar-name {
-    opacity: 0.7;
+.planetBar-btn.disabled:hover .planetBar-name,
+.planetBar-btn.disabled.active .planetBar-name {
+    opacity: 1 !important;
+    text-shadow: 0 2px 8px #000, 0 0 2px #a259ff !important;
+}
+
+.planetBar-btn.disabled:hover,
+.planetBar-btn.disabled:active {
+    background: none !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
+}
+
+.planetBar-btn.disabled img {
+    filter: grayscale(1) brightness(0.7) !important;
+    opacity: 0.7 !important;
+}
+
+.planetBar-btn.disabled {
+    pointer-events: none;
 }
 
 #navs {
@@ -1320,7 +1337,7 @@ header h1 {
     transition: background 0.2s, color 0.2s;
     border: 1px solid #404c5d;
     box-shadow: 0 2px 8px #000;
-    margin: 0 4px;
+    margin: 65px 0 0 4px;
     text-align: center;
     text-shadow: 1px 1px 2px #8332ed;
 }
@@ -1557,18 +1574,23 @@ header h1 {
 }
 
 #planetBarLabel {
-    left: 50%;
-    margin: 16px 0 8px;
-    position: absolute;
+    /* left: 50%; */
+    /* margin: 16px 0 8px; */
     font-weight: 500;
     text-align: center;
-    bottom: 15%;
-    transform: translate(-50%, 12px);
+    /* margin-bottom: 12px; */
+    /* transform: translate(-50%, 12px); */
     color: #a1a1a1;
     padding: 10px;
     border-radius: 10px;
     border: 1px solid #726a5e;
     background-color: #0f1011d9;
+}
+
+.planetBarWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 button:disabled {

@@ -911,7 +911,6 @@ function setupDialogImgZoomPan(dialogImg) {
         dragStartY = e.clientY - dialogImg.panY;
         dialogImg.style.cursor = "grabbing";
 
-        // Remove any previous move/up listeners
         if (window._dialogImgMoveHandler) window.removeEventListener("mousemove", window._dialogImgMoveHandler);
         if (window._dialogImgUpHandler) window.removeEventListener("mouseup", window._dialogImgUpHandler);
 
@@ -974,7 +973,6 @@ function setupDialogImgZoomPan(dialogImg) {
 
     dialogImg.style.transition = "transform 0.2s";
 
-    // Reset on close
     dialogImg.parentElement.addEventListener("close", function () {
         dialogImg.style.transition = "transform 0.2s";
         dialogImg.dialogZoom = 1;
@@ -987,11 +985,9 @@ function setupDialogImgZoomPan(dialogImg) {
 }
 function removeDivs() {
     const toRemove = Array.from(document.getElementsByClassName('removable'));
-    // if (planetsInfo[planetNo - 1]) {
     for (let i = 0; i < toRemove.length; i++) {
         toRemove[i].remove()
     }
-    // }
     if (document.getElementById("arrowSelectArrow")) document.getElementById("arrowSelectArrow").style.display = "none";
     const dialogImg = document.getElementById("dialogImg");
     if (dialogImg) dialogImg.src = "";
@@ -1013,6 +1009,7 @@ const planetPreviewMap = {
     neptune: "/textures/images/previews/neptune.webp",
 };
 let planetBarActivation = false;
+let isPlanetBarTransition = false;
 function createPlanetBar() {
     const bar = document.getElementById("planetBar");
     bar.style.display = "flex";
@@ -1053,6 +1050,7 @@ function createPlanetBar() {
         btn.appendChild(nameSpan);
 
         btn.onclick = () => {
+            isPlanetBarTransition = true;
             document.querySelectorAll(".planetBar-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             goToPlanet(globalIdx);
@@ -1085,7 +1083,6 @@ function updatePlanetBarActive() {
     const bar = document.getElementById("planetBar");
     const buttons = bar.querySelectorAll(".planetBar-btn");
 
-    // Find the index of the current planetNo in the non-moon list
     let globalIndexes = [];
     if (currentSolar == 1) {
         for (let i = 0; i < planetySun.length; i++) {
@@ -1100,6 +1097,23 @@ function updatePlanetBarActive() {
         currentSolar == 1 ? planetNo : planetNo + planetySun.length
     );
     if (buttons[activeIdx]) buttons[activeIdx].classList.add("active");
+
+    if (currentSolar == 1) {
+        if (camera.fov < 45 && buttons[0]) {
+            buttons[0].classList.add("disabled");
+            console.log("disabled");
+
+        } else if (buttons[0]) {
+            buttons[0].classList.remove("disabled");
+        }
+    }
+    if (currentSolar == 2) {
+        if (camera.fov < 45 && buttons[0]) {
+            buttons[0].classList.add("disabled");
+        } else if (buttons[0]) {
+            buttons[0].classList.remove("disabled");
+        }
+    }
 }
 
 const contact = document.getElementById("contact");
@@ -1194,6 +1208,7 @@ function cameraMoveNegative(val) {
         if (camera.fov >= 20) {
             camera.fov -= val
             document.getElementById("switch").checked = true;
+            updatePlanetBarActive();
         }
         else if (camera.fov >= 10 && camera.fov < 20) {
             cameraRampUp += 0.07
@@ -1222,13 +1237,13 @@ function cameraMovePositive(val) {
     if (camera.fov > 20) {
         // info()
         // console.log("asds");
-
         document.getElementById("inspekcja").style.display = "none";
         document.getElementById("inspekcjaDane").style.display = "none";
         document.getElementById("container").style.display = "none";
 
         inspectFalsePositive = 0
     }
+    updatePlanetBarActive();
 }
 
 function cameraSettings(lookat) {
@@ -1259,10 +1274,11 @@ function cameraTransition(planetyPos) {
     } else {
         planetyPrevPos = planetyPos;
     }
+    let customSpeed = isPlanetBarTransition ? 0.005 : transitionSpeed;
     let transition = new THREE.Vector3().lerpVectors(planetyPrevPos, planetyPos, transitionPercent)
     if (transitionPercent < 1 && transitionRestart == false) {
-        transitionPercent += transitionSpeed + 0.0005
-        transitionSpeed = transitionSpeed + 0.0005
+        transitionPercent += customSpeed + 0.0005
+        transitionSpeed = customSpeed + 0.0005
         document.getElementById("next").disabled = true;
         if (transitionPercent > 0.4) {
             transitionSpeed = transitionSpeed - 0.001
@@ -1274,17 +1290,17 @@ function cameraTransition(planetyPos) {
         camera.lookAt(transition)
     }
     else {
-        transitionPercent = 0
-        transitionSpeed = 0.005
-        transitionRestart = true
-        transitionComplete = true
-        planetBarActivation = false
-        orbitConfirm = 1
+        transitionPercent = 0;
+        transitionSpeed = 0.005;
+        transitionRestart = true;
+        transitionComplete = true;
+        planetBarActivation = false;
+        isPlanetBarTransition = false;
+        orbitConfirm = 1;
         document.getElementById("next").disabled = false;
         document.getElementById("switch").disabled = false;
         document.getElementById("solar").disabled = false;
-        camera.lookAt(planetyPos)
-
+        camera.lookAt(planetyPos);
     }
     return transitionComplete
 }
@@ -1719,7 +1735,7 @@ function animate() {
     camera.lookAt(planetyPos)
     if (solarCheck == 0) {
         if (!wasSolarCheckZero) {
-            document.getElementById("blocked").style.display = "none";
+            document.getElementById("switch").disabled = false;
             wasSolarCheckZero = true;
         }
 
@@ -1739,6 +1755,7 @@ function animate() {
             if (prev < 0) {
                 prev = 0
             }
+
             cameraTransition(planetyPos);
             if (transitionComplete) {
                 // cameraSettings(planetyPos);
@@ -1804,8 +1821,9 @@ function animate() {
     }
     if (solarCheck == 1) {
         document.getElementById("switch").checked = false;
-        document.getElementById("blocked").style.display = "block";
         cameraTransition(planetyPos)
+        document.getElementById("switch").disabled = true;
+
     }
     if (solarCheck == 1 && planetNo == 0 && focusCheck == true && focusFalsePositive == 0 && camera.fov == 45) {
         if (transitionComplete) {
