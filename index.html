@@ -85,6 +85,7 @@
 
 		</div>
 		<dialog style="width: 90%; height: 90%;" id="dialogee">
+			<p id="zoomTip">*Try Zooming in with scroll!*</p>
 			<img src="" id="dialogImg" draggable="false" loading="lazy">
 			<div class="row" id="row">
 				<div id="arrowSelect">
@@ -156,9 +157,11 @@
 	<div id="inspekcjaDane">
 		<p class="inspekcja" id="informacje"></p>
 	</div>
+	<p id="planetBarLabel">Quick travel (instant if zoomed in):</p>
 	<div id="navs">
 		<p id="mobileWelcome">Welcome to <span id="nick">Solaris</span>! For full experience please use laptop or PC</p>
 		<button id="contact" class="nav-btn">Contact</button>
+
 		<div id="planetBar"></div>
 		<button id="masterGallery" class="nav-btn">Gallery</button>
 	</div>
@@ -273,12 +276,12 @@
 
 
 			if (dialog.children[0]) {
-				if (dialog.children[0]) {
-					dialog.children[0].style.transform = "translate(-50%, -50%) scale(1)";
-					dialog.children[0].dialogZoom = 1;
-					dialog.children[0].panX = 0;
-					dialog.children[0].panY = 0;
-				}
+
+				// dialog.children[0].style.transform = "translate(-50%, -50%) scale(1)";
+				dialog.children[0].dialogZoom = 1;
+				dialog.children[0].panX = 0;
+				dialog.children[0].panY = 0;
+
 			}
 			if (sidebarColumn && arrow) {
 				arrow.style.display = "block";
@@ -299,8 +302,8 @@
 			panX = 0;
 			panY = 0;
 			updateDialogImgTransform();
-			const images = dialog.querySelectorAll("img");
-			images.forEach(img => img.remove());
+			const dialogImg = document.getElementById("dialogImg");
+			if (dialogImg) dialogImg.src = "";
 		};
 		window.dialCloseContact = function () {
 			const dialogContact = document.getElementById("contactDialog");

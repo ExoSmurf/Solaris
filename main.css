@@ -1538,6 +1538,7 @@ header h1 {
     color: #a1a1a1;
     z-index: 200;
     left: 50%;
+    top: 2.5%;
     transform: translate(-50%);
     background-color: rgba(12, 12, 12, 0.5);
     border-radius: 5px;
@@ -1546,6 +1547,21 @@ header h1 {
 
 #mobileWelcome {
     display: none;
+}
+
+#planetBarLabel {
+    left: 50%;
+    margin: 16px 0 8px;
+    position: absolute;
+    font-weight: 500;
+    text-align: center;
+    bottom: 15%;
+    transform: translate(-50%, 12px);
+    color: #a1a1a1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #726a5e;
+    background-color: #0f1011d9;
 }
 
 @media (max-width: 1000px) {
