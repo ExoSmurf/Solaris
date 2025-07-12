@@ -21,6 +21,8 @@ renderer.shadowMap.enabled = true
 
 const DEFAULT_EXPOSURE = 1.5;
 const BLACKHOLE_EXPOSURE = 1;
+const CAMERA_POS_MIN = 5;
+const CAMERA_POS_MAX = 40;
 
 let mouseX, mouseY
 let lightPower = 50;
@@ -43,8 +45,8 @@ function orbitSettings() {
     orbit.enableZoom = false;
     orbit.autoRotate = true;
     orbit.autoRotateSpeed = 0.5;
-    orbit.minDistance = 10
-    orbit.maxDistance = 45
+    orbit.minDistance = 5
+    orbit.maxDistance = 40
     cameraOldPos = camera.position
     return cameraOldPos
 }
@@ -52,6 +54,12 @@ orbitSettings()
 function cameraPosCheck() {
     cameraOldPos = camera.position
     return cameraOldPos
+}
+
+function clampCameraPosition() {
+    camera.position.x = Math.max(CAMERA_POS_MIN, Math.min(CAMERA_POS_MAX, camera.position.x));
+    camera.position.y = Math.max(CAMERA_POS_MIN, Math.min(CAMERA_POS_MAX, camera.position.y));
+    camera.position.z = Math.max(CAMERA_POS_MIN, Math.min(CAMERA_POS_MAX, camera.position.z));
 }
 
 let orbitZoom = new TrackballControls(camera, renderer.domElement);
@@ -526,7 +534,8 @@ function checkSolar() {
 
 function next() {
     removeDivs()
-    cameraFallback(cameraOldPos)
+    // cameraFallback(cameraOldPos)
+    if (camera.position.x != 20 || camera.position.y != 20 || camera.position.z != 20) transitionCameraToDefault();
     transitionRestart = false
     orbitOnce = 0
     if (solarCheck == 1) {
@@ -974,13 +983,14 @@ function setupDialogImgZoomPan(dialogImg) {
 }
 function removeDivs() {
     const toRemove = Array.from(document.getElementsByClassName('removable'));
-
-    if (planetsInfo[planetNo - 1]) {
-        for (let i = 0; i < toRemove.length; i++) {
-            toRemove[i].remove()
-        }
+    // if (planetsInfo[planetNo - 1]) {
+    for (let i = 0; i < toRemove.length; i++) {
+        toRemove[i].remove()
     }
+    // }
     if (document.getElementById("arrowSelectArrow")) document.getElementById("arrowSelectArrow").style.display = "none";
+    const dialogImg = document.getElementById("dialogImg");
+    if (dialogImg) dialogImg.src = "";
 }
 
 
@@ -1091,6 +1101,7 @@ function updatePlanetBarActive() {
 const contact = document.getElementById("contact");
 contact.addEventListener("click", () => {
     const contactDialog = document.getElementById("contactDialog");
+    closeAllVisibleDialogs();
     contactDialog.showModal();
     contactDialog.style.display = "flex";
     const highResAvatar = new Image();
@@ -1115,6 +1126,7 @@ masterGallery.addEventListener("click", () => {
     const naviHolder = document.getElementById("naviHoldersMaster");
 
 
+    closeAllVisibleDialogs();
     masterGalleryDialog.showModal();
     masterGalleryDialog.style.display = "flex";
     naviHolder.style.display = "flex";
@@ -1140,6 +1152,7 @@ masterGallery.addEventListener("click", () => {
 
         img.addEventListener("click", function () {
             galleryImageDialogImg.src = imgPath;
+            closeAllVisibleDialogs(["masterGalleryDialog"]);
             galleryImageDialog.showModal();
             galleryImageDialog.style.display = "flex";
             const highRes = new Image();
@@ -1152,6 +1165,22 @@ masterGallery.addEventListener("click", () => {
 
         masterGalleryGrid.appendChild(img);
     });
+});
+
+function closeAllVisibleDialogs(idsToExclude = []) {
+    document.querySelectorAll('dialog').forEach(dialog => {
+        if (getComputedStyle(dialog).display === "flex" && !idsToExclude.includes(dialog.id)) {
+            dialog.style.display = "none";
+            dialog.close();
+            console.log(`Closing dialog: ${dialog.id}`);
+
+        }
+    });
+}
+window.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+        closeAllVisibleDialogs();
+    }
 });
 
 let transitionComplete = false
@@ -1598,6 +1627,21 @@ function opacityRumpup() {
     }
 }
 
+function transitionCameraToDefault(targetPos = new THREE.Vector3(20, 20, 20), speed = 0.02) {
+    if (!camera.position.equals(targetPos)) {
+        let transitionInterval = setInterval(() => {
+            camera.position.lerp(targetPos, speed);
+            camera.updateProjectionMatrix();
+            // Stop when close enough
+            if (camera.position.distanceTo(targetPos) < 0.01) {
+                camera.position.copy(targetPos);
+                camera.updateProjectionMatrix();
+                clearInterval(transitionInterval);
+            }
+        }, 16); // ~60fps
+    }
+}
+
 let cameraRampUp = 0, troll = 1, orbitOnce = 0, orbitConfirm = 0, wasSolarCheckZero = false
 const target = orbit.target;
 const userCameraMoveSpeed = 0.5
@@ -1647,10 +1691,10 @@ function animate() {
     cameraPosCheck()
     camera.updateProjectionMatrix()
 
-
-
     orbitZoom.target.set(target.x, target.y, target.z)
     orbitZoom.update();
+
+    if (planetNo != 0) clampCameraPosition();
 
     if (checkPlanetaryState()[planetNo] && checkPlanetaryState()[planetNo].isMoon == true) { planetNo++; }
 
