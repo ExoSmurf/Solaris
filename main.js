@@ -1404,9 +1404,11 @@ vid.addEventListener('ended', () => {
             inspectFalsePositive = 0;
             solarReset = 0
             orbitOnce = 0
-            createPlanetBar();
-            startFalldown();
-            orbitSettings();
+            if (!resetingWithButton) {
+                createPlanetBar();
+                startFalldown();
+                orbitSettings();
+            }
             const firstBtn = document.getElementById("planetBar").querySelector(".planetBar-btn");
             firstBtn.classList.add("active");
             document.getElementById("planetBar").style.display = "flex";
@@ -1495,7 +1497,9 @@ function nextSolar() {
         });
     });
 }
+let resetingWithButton = false;
 function startTransitionOut(callback) {
+    resetingWithButton = true;
     rumpup = true;
     playVideo();
     startRumpup();
