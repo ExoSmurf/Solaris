@@ -1668,7 +1668,7 @@ button:disabled {
 
     #contactDialog {
         display: none;
-        height: 30vh;
+        height: 40vh;
         width: 95vw;
         margin-bottom: 20vh;
     }
