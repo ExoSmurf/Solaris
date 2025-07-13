@@ -1426,7 +1426,7 @@ function opacityFalldown() {
     allLoaded.style.display = "block"
     allLoaded.style.opacity = opacityVal + "%"
     if (vid.style.opacity > 0) {
-        opacityVal -= 2
+        opacityVal -= speedFall
     }
     if (opacityVal <= 5) {
         vid.style.zIndex = -10;
@@ -1511,6 +1511,7 @@ function startTransitionOut(callback) {
 }
 
 function unloadCurrentSolar(callback) {
+    speedFall = 3;
     unloadedCount = 0;
     clearScene();
     removeDivs();
@@ -1646,7 +1647,7 @@ function clearScene() {
     }
 }
 let opacityVal = 100
-
+let speedFall = 2.5
 function opacityRumpup() {
     vid.style.opacity = opacityVal + "%"
     plate.style.opacity = opacityVal + "%"
@@ -1658,7 +1659,7 @@ function opacityRumpup() {
         planetLoadedCount = planetLoadedCount - unloadedCount;
     }
     if (vid.style.opacity <= 1.5) {
-        opacityVal += 2.5
+        opacityVal += speedFall
     }
     if (opacityVal >= 5) {
         vid.style.zIndex = 10;
