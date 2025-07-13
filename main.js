@@ -1658,7 +1658,7 @@ function opacityRumpup() {
         planetLoadedCount = planetLoadedCount - unloadedCount;
     }
     if (vid.style.opacity <= 1.5) {
-        opacityVal += 1.5
+        opacityVal += 2
     }
     if (opacityVal >= 5) {
         vid.style.zIndex = 10;
