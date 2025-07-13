@@ -1608,7 +1608,8 @@ button:disabled {
 @media (max-width: 1800px) {
     #contactDialog {
         height: 80%;
-        transform: translate(-50%, -60%);
+        width: 90%;
+        transform: translate(-50%, -30%);
     }
 
     .row {
@@ -1617,6 +1618,10 @@ button:disabled {
 
     #arrowSelect {
         height: 100%;
+    }
+
+    #avatar {
+        margin: -10% auto 0 -5%;
     }
 }
 
