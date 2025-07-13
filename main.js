@@ -1426,7 +1426,7 @@ function opacityFalldown() {
     allLoaded.style.display = "block"
     allLoaded.style.opacity = opacityVal + "%"
     if (vid.style.opacity > 0) {
-        opacityVal -= 1.5
+        opacityVal -= 2
     }
     if (opacityVal <= 5) {
         vid.style.zIndex = -10;
@@ -1658,7 +1658,7 @@ function opacityRumpup() {
         planetLoadedCount = planetLoadedCount - unloadedCount;
     }
     if (vid.style.opacity <= 1.5) {
-        opacityVal += 2
+        opacityVal += 2.5
     }
     if (opacityVal >= 5) {
         vid.style.zIndex = 10;
