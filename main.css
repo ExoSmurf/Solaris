@@ -1359,7 +1359,7 @@ header h1 {
     left: 50%;
     transform: translate(-50%, -40%);
     width: 80%;
-    max-width: 90vh;
+    max-width: 110vh;
     height: 60%;
     max-height: 110vh;
     background-color: rgba(20, 20, 20, 0.97);
@@ -1608,7 +1608,7 @@ button:disabled {
 @media (max-width: 1800px) {
     #contactDialog {
         height: 80%;
-        width: 90vw;
+        width: 110vw;
         transform: translate(-50%, -30%);
     }
 
