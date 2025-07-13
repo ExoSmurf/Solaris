@@ -1728,9 +1728,15 @@ function startRumpup() {
     }, 2);
 }
 
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 let ignoreSun = false
 
 function animate() {
+
+    if (isMobile()) return; // Disable animations on mobile devices
 
     if (currentSolar == 1 && planetLoadedCount < planetySun.length) return;
     if (currentSolar == 2 && planetBlackHoleLoadedCount < planetyBlackHole.length) return;
