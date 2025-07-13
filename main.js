@@ -1195,7 +1195,8 @@ masterGallery.addEventListener("click", () => {
     });
 });
 
-function closeAllVisibleDialogs(idsToExclude = []) {
+let isHandlingPopstate = false;
+function closeAllVisibleDialogs(idsToExclude = [], fromPopstate = false) {
     let anyClosed = false;
     document.querySelectorAll('dialog').forEach(dialog => {
         if (getComputedStyle(dialog).display === "flex" && !idsToExclude.includes(dialog.id)) {
@@ -1203,13 +1204,13 @@ function closeAllVisibleDialogs(idsToExclude = []) {
             dialog.close();
             anyClosed = true;
             console.log(`Closing dialog: ${dialog.id}`);
-
         }
     });
-    if (anyClosed && window.history.state && window.history.state.dialogOpen) {
+    if (anyClosed && window.history.state && window.history.state.dialogOpen && !fromPopstate) {
         history.back();
     }
 }
+
 window.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
         closeAllVisibleDialogs();
@@ -1217,12 +1218,14 @@ window.addEventListener("keydown", function (e) {
 });
 
 window.addEventListener("popstate", function () {
+    isHandlingPopstate = true;
     const anyOpen = Array.from(document.querySelectorAll('dialog')).some(
         dialog => getComputedStyle(dialog).display === "flex"
     );
     if (anyOpen) {
-        closeAllVisibleDialogs();
+        closeAllVisibleDialogs([], true); // Pass true to prevent history.back()
     }
+    isHandlingPopstate = false;
 });
 
 function openDialogWithHistory(dialogId) {
