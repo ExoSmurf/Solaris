@@ -1540,6 +1540,9 @@ function loadNextSolar(callback) {
         function checkLoaded() {
             console.log("len:" + scene.children.length);
             if (planetBlackHoleLoadedCount >= planetyBlackHole.length) {
+                orbitSettings();
+                createPlanetBar();
+                light();
                 callback();
             } else {
                 setTimeout(checkLoaded, 20);
@@ -1560,6 +1563,9 @@ function loadNextSolar(callback) {
         function checkLoaded() {
             console.log("len:" + scene.children.length);
             if (planetLoadedCount >= planetySun.length) {
+                orbitSettings();
+                createPlanetBar();
+                light();
                 callback();
             } else {
                 setTimeout(checkLoaded, 20);
@@ -1571,13 +1577,11 @@ function loadNextSolar(callback) {
 
 function startTransitionIn() {
     opacityFall = true;
-    // startFalldown();
-    createPlanetBar();
-    light();
+    startFalldown();
     // scene.traverse(obj => {
     //     if (obj.isLight) obj.castShadow = false;
     // });
-    orbitSettings();
+    // orbitSettings();
     planetNo = 0;
     info();
 }
