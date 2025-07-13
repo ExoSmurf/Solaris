@@ -1288,7 +1288,7 @@ function cameraTransition(planetyPos) {
     } else {
         planetyPrevPos = planetyPos;
     }
-    let customSpeed = isPlanetBarTransition ? 0.001 : transitionSpeed;
+    let customSpeed = isPlanetBarTransition ? 0.01 : transitionSpeed;
     let transition = new THREE.Vector3().lerpVectors(planetyPrevPos, planetyPos, transitionPercent)
     if (transitionPercent < 1 && transitionRestart == false) {
         transitionPercent += customSpeed + 0.0005
