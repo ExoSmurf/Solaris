@@ -1670,7 +1670,7 @@ button:disabled {
         display: none;
         height: 40vh;
         width: 95vw;
-        margin-bottom: 20vh;
+        margin-bottom: 10vh;
     }
 
     #masterGalleryDialog {
