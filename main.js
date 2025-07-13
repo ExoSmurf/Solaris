@@ -1736,7 +1736,10 @@ let ignoreSun = false
 
 function animate() {
 
-    if (isMobile()) return; // Disable animations on mobile devices
+    if (isMobile()) {
+        console.log("Mobile device detected, disabling animations.");
+        return; // Disable animations on mobile devices
+    }
 
     if (currentSolar == 1 && planetLoadedCount < planetySun.length) return;
     if (currentSolar == 2 && planetBlackHoleLoadedCount < planetyBlackHole.length) return;
