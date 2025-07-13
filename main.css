@@ -1579,17 +1579,18 @@ header h1 {
 }
 
 #planetBarLabel {
-    /* left: 50%; */
-    /* margin: 16px 0 8px; */
     font-weight: 500;
     text-align: center;
-    /* margin-bottom: 12px; */
-    /* transform: translate(-50%, 12px); */
     color: #a1a1a1;
     padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #726a5e;
-    background-color: #0f1011d9;
+    border-radius: 16px;
+    border: 1px solid #404c5d;
+    background-color: rgba(20, 20, 20, 0.85);
+    font-family: Minecraft, Rubik, sans-serif;
+    font-size: 1.1em;
+    user-select: none;
+    box-shadow: 0 2px 8px #000;
+    text-shadow: 1px 1px 2px #8332ed;
 }
 
 .planetBarWrapper {
@@ -1602,6 +1603,21 @@ button:disabled {
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed;
+}
+
+@media (max-width: 1800px) {
+    #contactDialog {
+        height: 80%;
+        transform: translate(-50%, -60%);
+    }
+
+    .row {
+        height: 100%;
+    }
+
+    #arrowSelect {
+        height: 100%;
+    }
 }
 
 @media (max-width: 1000px) {
