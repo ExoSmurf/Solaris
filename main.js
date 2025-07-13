@@ -1196,10 +1196,12 @@ masterGallery.addEventListener("click", () => {
 });
 
 function closeAllVisibleDialogs(idsToExclude = []) {
+    let anyClosed = false;
     document.querySelectorAll('dialog').forEach(dialog => {
         if (getComputedStyle(dialog).display === "flex" && !idsToExclude.includes(dialog.id)) {
             dialog.style.display = "none";
             dialog.close();
+            anyClosed = true;
             console.log(`Closing dialog: ${dialog.id}`);
 
         }
