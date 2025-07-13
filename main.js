@@ -1204,6 +1204,9 @@ function closeAllVisibleDialogs(idsToExclude = []) {
 
         }
     });
+    if (anyClosed && window.history.state && window.history.state.dialogOpen) {
+        history.back();
+    }
 }
 window.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
@@ -1212,7 +1215,12 @@ window.addEventListener("keydown", function (e) {
 });
 
 window.addEventListener("popstate", function () {
-    closeAllVisibleDialogs();
+    const anyOpen = Array.from(document.querySelectorAll('dialog')).some(
+        dialog => getComputedStyle(dialog).display === "flex"
+    );
+    if (anyOpen) {
+        closeAllVisibleDialogs();
+    }
 });
 
 function openDialogWithHistory(dialogId) {
