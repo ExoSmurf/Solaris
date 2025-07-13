@@ -857,8 +857,7 @@ function info() {
             dialog.prepend(img);
 
             slide[i].addEventListener('click', () => {
-                dialog.showModal();
-                dialog.style.display = "flex";
+                openDialogWithHistory("dialogee");
                 dialog.children[0].src = slide[i].children[0].src;
                 console.log("Setting dialog image src:", slide[i].children[0].src);
                 const highRes = new Image();
@@ -1134,8 +1133,7 @@ const contact = document.getElementById("contact");
 contact.addEventListener("click", () => {
     const contactDialog = document.getElementById("contactDialog");
     closeAllVisibleDialogs();
-    contactDialog.showModal();
-    contactDialog.style.display = "flex";
+    openDialogWithHistory("contactDialog")
     const highResAvatar = new Image();
     highResAvatar.src = document.getElementById("avatar").src.replace(".webp", "2.webp");
     highResAvatar.onload = () => {
@@ -1159,8 +1157,7 @@ masterGallery.addEventListener("click", () => {
 
 
     closeAllVisibleDialogs();
-    masterGalleryDialog.showModal();
-    masterGalleryDialog.style.display = "flex";
+    openDialogWithHistory("masterGalleryDialog");
     naviHolder.style.display = "flex";
 
     masterGalleryGrid.innerHTML = "";
@@ -1185,8 +1182,7 @@ masterGallery.addEventListener("click", () => {
         img.addEventListener("click", function () {
             galleryImageDialogImg.src = imgPath;
             closeAllVisibleDialogs(["masterGalleryDialog"]);
-            galleryImageDialog.showModal();
-            galleryImageDialog.style.display = "flex";
+            openDialogWithHistory("galleryImageDialog");
             const highRes = new Image();
             highRes.src = imgPath.replace(".webp", "2.webp");
             highRes.onload = () => {
@@ -1214,6 +1210,17 @@ window.addEventListener("keydown", function (e) {
         closeAllVisibleDialogs();
     }
 });
+
+window.addEventListener("popstate", function () {
+    closeAllVisibleDialogs();
+});
+
+function openDialogWithHistory(dialogId) {
+    const dialog = document.getElementById(dialogId);
+    dialog.showModal();
+    dialog.style.display = "flex";
+    history.pushState({ dialogOpen: true, dialogId }, "");
+}
 
 let transitionComplete = false
 
