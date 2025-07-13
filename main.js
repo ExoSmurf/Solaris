@@ -990,6 +990,7 @@ function removeDivs() {
         toRemove[i].remove()
     }
     if (document.getElementById("arrowSelectArrow")) document.getElementById("arrowSelectArrow").style.display = "none";
+    document.getElementById("arrowSelectArrow").style.top = "50%";
     const dialogImg = document.getElementById("dialogImg");
     if (dialogImg) dialogImg.src = "";
 }
@@ -1433,6 +1434,7 @@ vid.addEventListener('ended', () => {
             firstBtn.classList.add("active");
             document.getElementById("planetBar").style.display = "flex";
             if (document.getElementById("arrowSelectArrow")) document.getElementById("arrowSelectArrow").style.display = "none";
+            document.getElementById("arrowSelectArrow").style.top = "50%";
             document.getElementById("main").classList.add("slideIn")
         }
     }
@@ -1507,6 +1509,8 @@ function nextSolar() {
     isSwitchingSolar = true;
     startTransitionOut(() => {
         unloadCurrentSolar(() => {
+            document.getElementById("arrowSelectArrow").style.display = "none";
+            document.getElementById("arrowSelectArrow").style.top = "50%";
             loadNextSolar(() => {
                 startTransitionIn();
                 isSwitchingSolar = false;
