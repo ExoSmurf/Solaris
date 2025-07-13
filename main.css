@@ -1660,4 +1660,8 @@ button:disabled {
     #masterGalleryGrid {
         grid-template-columns: repeat(2, 1fr) !important;
     }
+
+    #planetBarLabel {
+        display: none;
+    }
 }
