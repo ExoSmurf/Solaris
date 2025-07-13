@@ -1689,7 +1689,11 @@ button:disabled {
     }
 
     #naviHoldersMaster {
-        transform: translate(-25%);
+        transform: translate(-25%, -16px);
+        scale: 2;
+    }
+
+    #svgCloseContact {
         scale: 2;
     }
 }
