@@ -1607,7 +1607,7 @@ button:disabled {
 @media (max-width: 1800px) {
     #contactDialog {
         height: 80%;
-        width: 120vw;
+        width: 110vw;
         transform: translate(-50%, -30%);
     }
 
