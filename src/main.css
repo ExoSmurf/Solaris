@@ -59,7 +59,7 @@ header h1 {
     position: absolute;
     transform: (0.7);
     margin-left: 44vw;
-    /* background-image: url('textures/circleRange.png');
+    /* background-image: url('/textures/circleRange.png');
     background-repeat: repeat;
     background-size: 10px 10px;
     background-blend-mode: darken;
@@ -425,7 +425,7 @@ header h1 {
 #massBoxImg,
 #ressBoxImg,
 #bulkBoxImg {
-    /* background-image: url("textures/back.png"); */
+    /* background-image: url("/textures/back.png"); */
     -webkit-mask-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4));
     mask-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4));
     mask-size: cover;
