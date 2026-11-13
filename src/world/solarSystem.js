@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { loadModel, prepareShadows } from './loadModel.js';
 import { CelestialBody } from './body.js';
+import { applyWobbles } from '../motion/motion.js';
 
 /**
  * Ładuje cały układ (wszystkie modele równolegle), buduje ciała, podpina dzieci pod rodziców i dodaje układ do sceny.
@@ -9,7 +10,8 @@ import { CelestialBody } from './body.js';
  * @param {{scene: THREE.Scene, load?: function}} options - scena docelowa i opcjonalny loader (do testów)
  * @returns {Promise<{root: THREE.Group, bodies: CelestialBody[], byId: Map<string, CelestialBody>, update: function, unload: function}>}
  *   root: grupa z całym układem; bodies: ciała w kolejności z configu; byId: ciała po id;
- *   update(): przesuwa każde ciało o jedną klatkę; unload(): usuwa układ ze sceny i zwalnia pamięć
+ *   update(frames = 1): przesuwa każde ciało o `frames` klatek 60 FPS i wykonuje kołysanie (wobble);
+ *   unload(): usuwa układ ze sceny i zwalnia pamięć
  */
 export async function loadSolarSystem(config, { scene, load = loadModel }) {
     const root = new THREE.Group();
@@ -32,8 +34,9 @@ export async function loadSolarSystem(config, { scene, load = loadModel }) {
         root,
         bodies,
         byId,
-        update() {
-            for (const body of bodies) body.update();
+        update(frames = 1) {
+            for (const body of bodies) body.update(frames);
+            applyWobbles(bodies, frames);
         },
         unload() {
             scene.remove(root);

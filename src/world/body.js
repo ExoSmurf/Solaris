@@ -4,6 +4,19 @@ import { advance } from '../motion/motion.js';
 const MAP_KEYS = ['map', 'lightMap', 'bumpMap', 'normalMap', 'aoMap', 'emissiveMap', 'specularMap'];
 
 /**
+ * Mierzy promień modelu (kula otaczająca, ze skalą modelu), bez względu na jego pozycję.
+ * Wywoływane przed podpięciem innych ciał (księżyców), żeby ich nie liczyć.
+ * @param {THREE.Object3D} mesh - model ciała
+ * @returns {number} promień w jednostkach świata (0 dla pustego modelu)
+ */
+function measureRadius(mesh) {
+    mesh.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(mesh);
+    if (box.isEmpty()) return 0;
+    return box.getBoundingSphere(new THREE.Sphere()).radius;
+}
+
+/**
  * Jedno ciało niebieskie w scenie: model (mesh) i opcjonalny pivot, wokół którego krąży.
  */
 export class CelestialBody {
@@ -21,6 +34,7 @@ export class CelestialBody {
         this.wobbleDown = false;
 
         if (config.scale !== undefined) mesh.scale.setScalar(config.scale);
+        this.radius = measureRadius(mesh);
 
         this.pivot = null;
         if (config.orbit) {

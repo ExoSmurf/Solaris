@@ -1,73 +1,58 @@
 import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { systems } from "./config/systems.js";
+import { bodyInfo } from "./config/info.js";
+import { paths, camera as cameraConfig, light as lightConfig, render as renderConfig, motion as motionConfig, hud as hudConfig } from "./config/settings.js";
+import { loadSolarSystem } from "./world/solarSystem.js";
+import { framesBetween } from "./motion/motion.js";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
-import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
-import { select } from 'three/tsl';
-import { remove } from 'three/examples/jsm/libs/tween.module.js';
+import { createCameraRig, nextPlanetIndex } from './camera/cameraRig.js';
+import { cameraStatus, createCameraStatus } from './ui/cameraStatus.js';
+import { bracketFrame, createLockBrackets, formatCoordinates, formatDelta, lockBracketsState, movementSpeed, screenRadius, smoothValue } from './ui/lockBrackets.js';
+import { createScrambler } from './ui/scrambleText.js';
+import { createImagePreloader, planetImageUrls } from './ui/preloadImages.js';
+
 
 // import './slides.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true }); //tlo alpha na true zeby tlo widac bylo przed zaladowaniem
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
+
 renderer.toneMapping = THREE.ReinhardToneMapping;
-renderer.toneMappingExposure = 1.5;
+renderer.toneMappingExposure = renderConfig.exposure;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+
 renderer.shadowMap.enabled = true
 
-const DEFAULT_EXPOSURE = 1.5;
-const BLACKHOLE_EXPOSURE = 1;
-const CAMERA_POS_MIN = 5;
-const CAMERA_POS_MAX = 40;
 
 let mouseX, mouseY
-let lightPower = 50;
-const BLACKHOLE_LIGHT_POWER = 20;
 
 let scene = new THREE.Scene;
+let camera = new THREE.PerspectiveCamera(
+    cameraConfig.fov.default,
+    window.innerWidth / window.innerHeight,
+    cameraConfig.clip.near,
+    cameraConfig.clip.far);
 
-let camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-let cameraOldPos
-let orbit = new OrbitControls(camera, renderer.domElement);
-const speed = 0.1
-camera.position.set(20, 20, 20);
+const START_POSITION = new THREE.Vector3(
+    cameraConfig.position.start.x,
+    cameraConfig.position.start.y,
+    cameraConfig.position.start.z);
+camera.position.copy(START_POSITION);
 
-function orbitSettings() {
-    if (orbit) orbit.dispose(); orbit = null;
-    orbit = new OrbitControls(camera, renderer.domElement);
-    orbit.rotateSpeed = speed;
-    orbit.enableDamping = true;
-    orbit.dampingFactor = 1;
-    orbit.enableZoom = false;
-    orbit.autoRotate = true;
-    orbit.autoRotateSpeed = 0.5;
-    orbit.minDistance = 5
-    orbit.maxDistance = 40
-    cameraOldPos = camera.position
-    return cameraOldPos
-}
-orbitSettings()
-function cameraPosCheck() {
-    cameraOldPos = camera.position
-    return cameraOldPos
-}
-
-function clampCameraPosition() {
-    camera.position.x = Math.max(CAMERA_POS_MIN, Math.min(CAMERA_POS_MAX, camera.position.x));
-    camera.position.y = Math.max(CAMERA_POS_MIN, Math.min(CAMERA_POS_MAX, camera.position.y));
-    camera.position.z = Math.max(CAMERA_POS_MIN, Math.min(CAMERA_POS_MAX, camera.position.z));
-}
-
-let orbitZoom = new TrackballControls(camera, renderer.domElement);
-orbitZoom.noRotate = true;
-orbitZoom.noPan = true;
-orbitZoom.noZoom = false;
-orbitZoom.zoomSpeed = 1;
+const orbit = new OrbitControls(camera, renderer.domElement);
+orbit.autoRotate = true;
+orbit.rotateSpeed = cameraConfig.orbit.rotateSpeed;
+orbit.autoRotateSpeed = cameraConfig.orbit.autoRotateSpeed;
+orbit.enableDamping = true;
+orbit.dampingFactor = cameraConfig.orbit.dampingFactor;
+orbit.enableZoom = false;
+orbit.minDistance = cameraConfig.orbit.minDistance;
+orbit.maxDistance = cameraConfig.orbit.maxDistance;
 
 const renderScene = new RenderPass(scene, camera)
 const composer = new EffectComposer(renderer)
@@ -76,9 +61,9 @@ composer.addPass(renderScene);
 const bloomResolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
 const bloomPass = new UnrealBloomPass(
     bloomResolution,
-    1,
-    1,
-    0.2
+    renderConfig.bloom.strength,
+    renderConfig.bloom.radius,
+    renderConfig.bloom.threshold
 )
 composer.addPass(bloomPass)
 
@@ -142,484 +127,178 @@ starfield.name = "starfield";
 scene.add(starfield)
 
 
-let sun, earth, earthObj, saturn, jupiterObj, Venus, caresObj, moon, moonObj
-let planetLoadedCount = 0
-
-const loadingManager = new THREE.LoadingManager();
-
-loadingManager.onProgress = function (url, loaded, total) { }
 let currentSolar = 1
-const loader = new GLTFLoader(loadingManager);
+let planetySun = []
+let planetyBlackHole = []
+let activeSystem = null
+let renderLoopRunning = false
+const SYSTEM_KEYS = { 1: 'sun', 2: 'blackhole' };
 
-const planetySun = [
-    {
-        planeta: "sun", src: "/models/sun/sun.gltf",
-        blok: { kostka: null, x: 0, y: 0, z: 0, rotation: 0.01 },
-        blokObj: { kostka: null, x: null, y: null, z: null, rotation: null },
-        isMoon: false
-    },
-    {
-        planeta: "Venus", src: "/models/Venus/Venus.gltf",
-        blok: { kostka: null, x: 3, y: null, z: null, rotation: 0.01 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.00035 },
-        isMoon: false
-    },
-    {
-        planeta: "earth", src: "/models/earth/earth.gltf",
-        blok: { kostka: null, x: -9, y: null, z: null, rotation: 0.01 },
-        blokObj: { kostka: null, x: 0, y: null, z: null, rotation: 0.005 },
-        isMoon: false,
-    },
-    {
-        planeta: "moon", src: "/models/moon/moon.gltf",
-        blok: { kostka: null, x: 1, y: null, z: null, rotation: 0.02 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: -0.001 },
-        isMoon: true
-    },
-    {
-        planeta: "saturn", src: "/models/saturn/saturn.gltf",
-        blok: { kostka: null, x: 17, y: null, z: null, rotation: 0.01 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0008 },
-        isMoon: false
-    },
-    {
-        planeta: "pluto", src: "/models/pluto/pluto.gltf",
-        blok: { kostka: null, x: -24, y: null, z: null, rotation: 0.01 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0005 },
-        isMoon: false
+async function loadSystem(solarNo) {
+    const system = await loadSolarSystem(systems[SYSTEM_KEYS[solarNo]], { scene });
+    system.solarNo = solarNo;
+    if (solarNo == 1) planetySun = system.bodies;
+    else planetyBlackHole = system.bodies;
+    activeSystem = system;
+    cameraRig.setBodies(system.bodies);
+    if (!renderLoopRunning) {
+        renderLoopRunning = true;
+        animate();
     }
-
-]
-let oneTimeTicket = true;
-function loadSunSolar() {
-    planetySun.forEach((el, i) => {
-
-        if (el.planeta == "sun") {
-
-            loader.load(
-                el.src,
-                function (gltf) {
-                    sun = gltf.scene;
-                    scene.add(sun);
-                    el.blok.kostka = sun;
-                    planetLoadedCount++
-                    sun.castShadow = true
-                    sun.traverse(n => {
-                        if (n.isMesh) {
-                            n.castShadow = true;
-                            if (n.material.map) n.material.map.anisotropy = 0;
-                        }
-                    });
-                    if (planetLoadedCount == planetySun.length && oneTimeTicket == true) {
-                        planetySun[2].blok.kostka.add(planetySun[3].blokObj.kostka)
-                        animate()
-                        oneTimeTicket = false;
-                    }
-                },
-                function (xhr) {
-
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded: ' + el.planeta);
-
-                },
-                function (error) {
-                    console.error(error);
-                }
-            );
-        }
-        else if (checkSolar() <= i + 1) {
-            loader.load(
-                el.src,
-                function (gltf) {
-                    let kostka = gltf.scene
-                    let kostkaObj = new THREE.Object3D()
-                    kostkaObj.add(kostka);
-                    scene.add(kostkaObj);
-                    el.blok.kostka = kostka
-                    el.blokObj.kostka = kostkaObj
-                    planetLoadedCount++
-                    kostka.traverse(n => {
-                        if (n.isMesh) {
-                            n.castShadow = true;
-                            n.receiveShadow = true;
-                            if (n.material.map) n.material.map.anisotropy = 0;
-                        }
-                    });
-                    if (planetLoadedCount == planetySun.length && oneTimeTicket == true) {
-                        planetySun[2].blok.kostka.add(planetySun[3].blokObj.kostka)
-                        animate()
-                        oneTimeTicket = false;
-                    }
-
-                },
-                function (xhr) {
-
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded: ' + el.planeta);
-
-                },
-                function (error) {
-                    console.error(error);
-                }
-
-            );
-        }
-        else {
-            loader.load(
-                el.src,
-                function (gltf) {
-                    let kostka = gltf.scene
-                    let kostkaObj = new THREE.Object3D()
-                    kostkaObj.add(kostka);
-                    scene.add(kostkaObj);
-                    el.blok.kostka = kostka
-                    el.blokObj.kostka = kostkaObj
-                    kostka.traverse(n => {
-                        if (n.isMesh) {
-                            n.castShadow = true;
-                            n.receiveShadow = true;
-                            if (n.material.map) n.material.map.anisotropy = 0;
-                        }
-                    });
-                    planetLoadedCount++
-
-                    if (planetLoadedCount == planetySun.length && oneTimeTicket == true) {
-                        planetySun[2].blok.kostka.add(planetySun[3].blokObj.kostka)
-                        animate()
-                        oneTimeTicket = false;
-                    }
-                },
-                function (xhr) {
-
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded: ' + el.planeta);
-
-                },
-                function (error) {
-                    console.error(error);
-                }
-
-            );
-        }
-
-    });
-
 }
-loadSunSolar()
+loadSystem(1).catch(console.error);
 
-const planetyBlackHole = [
-    {
-        planeta: "BlackHole", src: "/models/blackhole/blackhole.gltf",
-        blok: { kostka: null, x: 0, y: 0, z: 0, rotation: 0.001 },
-        blokObj: { kostka: null, x: null, y: null, z: null, rotation: null },
-        isMoon: false
-    },
-    {
-        planeta: "pyrox", src: "/models/pyrox/pyrox.gltf",
-        blok: { kostka: null, x: null, y: null, z: -5, rotation: 0.005 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: -0.001 },
-        isMoon: false
-    },
-    {
-        planeta: "pyroxBlob", src: "/models/pyrox/pyroxBlob.gltf",
-        blok: { kostka: null, x: 0.5, y: null, z: null, rotation: 0.005 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.001 },
-        isMoon: true
-    },
-    {
-        planeta: "pyroxBlob2", src: "/models/pyrox/pyroxBlob.gltf",
-        blok: { kostka: null, x: -0.6, y: null, z: -0.7, rotation: 0.005 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.001 },
-        isMoon: true
-    },
-    {
-        planeta: "pyroxBlob3", src: "/models/pyrox/pyroxBlob.gltf",
-        blok: { kostka: null, x: 0.6, y: null, z: -0.7, rotation: 0.002 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: -0.0001 },
-        isMoon: true
-    },
-    {
-        planeta: "pyroxBlob4", src: "/models/pyrox/pyroxBlob.gltf",
-        blok: { kostka: null, x: 0.4, y: null, z: 0.8, rotation: 0.001 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.003 },
-        isMoon: true
-    },
-    {
-        planeta: "mirethul", src: "/models/Mirethul/Mirethul.gltf",
-        blok: { kostka: null, x: -8, y: null, z: null, rotation: 0.003 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0001 },
-        isMoon: false
-    },
-    {
-        planeta: "aerolith", src: "/models/Aerolith/aerolith.gltf",
-        blok: { kostka: null, x: 11, y: null, z: null, rotation: 0.005 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.0003 },
-        isMoon: false
-    },
-    {
-        planeta: "skarnis", src: "/models/skarnis/skarnis.gltf",
-        blok: { kostka: null, x: null, y: null, z: 15, rotation: 0 },
-        blokObj: { kostka: null, x: 0, y: 0, z: null, rotation: 0.001 },
-        isMoon: false
-    },
-    {
-        planeta: "neptune", src: "/models/neptune/neptune.gltf",
-        blok: { kostka: null, x: null, y: 0, z: 19, rotation: 0.007 },
-        blokObj: { kostka: null, x: null, y: null, z: null, rotation: 0.0002 },
-        isMoon: false
-    }
-
-]
-let hole;
-let planetBlackHoleLoadedCount = 0
-function loadBlackHoleSolar() {
-    if (!hole) {
-        hole = new THREE.Object3D();
-    }
-    planetyBlackHole.forEach((el, i) => {
-        if (el.planeta == "BlackHole") {
-            loader.load(
-                el.src,
-                function (gltf) {
-                    hole = gltf.scene;
-                    scene.add(hole);
-                    el.blok.kostka = hole;
-                    hole.castShadow = true
-                    hole.scale.set(4, 4, 4)
-                    hole.traverse(n => {
-                        if (n.isMesh) {
-                            n.castShadow = true;
-                            if (n.material.map) n.material.map.anisotropy = 0;
-                        }
-                    });
-                    planetBlackHoleLoadedCount++
-                    if (planetBlackHoleLoadedCount == planetyBlackHole.length && oneTimeTicket == true) {
-
-                        animate()
-                        oneTimeTicket = false;
-                    }
-                },
-                function (xhr) {
-
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded: ' + el.planeta);
-
-                },
-                function (error) {
-                    console.error(error);
-                }
-
-            );
-        } else {
-            loader.load(
-                el.src,
-                function (gltf) {
-                    let kostka = gltf.scene
-                    let kostkaObj = new THREE.Object3D()
-                    kostkaObj.add(kostka);
-                    scene.add(kostkaObj);
-                    el.blok.kostka = kostka
-                    el.blokObj.kostka = kostkaObj
-                    kostka.traverse(n => {
-                        if (n.isMesh) {
-                            n.castShadow = true;
-                            n.receiveShadow = true;
-                            if (n.material.map) n.material.map.anisotropy = 0;
-                        }
-                    });
-                    if (el.planeta == "aerolith") el.blok.kostka.scale.set(2, 2, 2)
-                    if (el.planeta == "skarnis") el.blok.kostka.scale.set(4, 4, 4)
-                    planetBlackHoleLoadedCount++
-                    if (planetBlackHoleLoadedCount == planetyBlackHole.length && oneTimeTicket == true) {
-                        animate();
-                        oneTimeTicket = false;
-                    }
-
-                },
-                function (xhr) {
-
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded: ' + el.planeta);
-
-                },
-                function (error) {
-                    console.log(`Error loading ${el.planeta}:`, error);
-
-                    console.error(error);
-                }
-
-            );
-        }
-    });
+function systemReady() {
+    return activeSystem !== null && activeSystem.solarNo === currentSolar;
 }
 
+let lastFrameTime = performance.now();
 
 document.getElementById("container3D").appendChild(renderer.domElement);
 // const axesHelper = new THREE.AxesHelper(100000);
 // scene.add(axesHelper)
-let lightDistance = 100
 function light() {
-    let lightPower = 120
-
-    const pointLightY = new THREE.PointLight(0xFFFED1, 1, 30);
-    pointLightY.castShadow = true
-    pointLightY.shadow.bias = -0.01;
-    pointLightY.position.set(0, 2, 0);
-    pointLightY.shadow.mapSize.width = lightDistance;
-    pointLightY.shadow.mapSize.height = lightDistance;
-    pointLightY.distance = lightDistance
-    pointLightY.power = lightPower
-    scene.add(pointLightY);
-
-    const pointLightY2 = new THREE.PointLight(0xFFFED1, 1, 30);
-    pointLightY2.castShadow = true
-    pointLightY2.shadow.bias = -0.01;
-    pointLightY2.shadow.mapSize.width = lightDistance;
-    pointLightY2.shadow.mapSize.height = lightDistance;
-    pointLightY2.position.set(0, -2, 0);
-    pointLightY2.power = lightPower
-    pointLightY2.distance = lightDistance
-    scene.add(pointLightY2);
-
-    const pointLightX = new THREE.PointLight(0xFFFED1, 1, 30);
-    pointLightX.castShadow = true
-    pointLightX.shadow.bias = -0.01;
-    pointLightX.shadow.mapSize.width = lightDistance;
-    pointLightX.shadow.mapSize.height = lightDistance;
-    pointLightX.distance = lightDistance
-    pointLightX.position.set(2, 0, 0)
-    pointLightX.power = lightPower
-    scene.add(pointLightX)
-
-    const pointLightX2 = new THREE.PointLight(0xFFFED1, 1, 30);
-    pointLightX2.castShadow = true
-    pointLightX2.shadow.bias = -0.01;
-    pointLightX2.shadow.mapSize.width = lightDistance;
-    pointLightX2.shadow.mapSize.height = lightDistance;
-    pointLightX2.position.set(-2, 0, 0)
-    pointLightX2.distance = lightDistance
-    pointLightX2.power = lightPower
-    scene.add(pointLightX2)
-
-
-    const pointLightZ = new THREE.PointLight(0xFFFED1, 1, 30);
-    pointLightZ.castShadow = true
-    pointLightZ.shadow.bias = -0.01;
-    pointLightZ.shadow.mapSize.width = lightDistance;
-    pointLightZ.shadow.mapSize.height = lightDistance;
-    pointLightZ.position.set(0, 0, 2)
-    pointLightZ.distance = lightDistance
-    pointLightZ.power = lightPower
-    scene.add(pointLightZ)
-
-    const pointLightZ2 = new THREE.PointLight(0xFFFED1, 1, 30);
-    pointLightZ2.castShadow = true
-    pointLightZ2.shadow.bias = -0.01;
-    pointLightZ2.shadow.mapSize.width = lightDistance;
-    pointLightZ2.shadow.mapSize.height = lightDistance;
-    pointLightZ2.distance = lightDistance
-    pointLightZ2.position.set(0, 0, -2)
-    pointLightZ2.power = lightPower
-    scene.add(pointLightZ2)
-
-    const ambientLight = new THREE.AmbientLight(0xFFFED1, 0.1);
-    scene.add(ambientLight);
+    const { color, ambientIntensity, offsetFromCenter: d, point } = lightConfig;
+    const offsets = [[0, d, 0], [0, -d, 0], [d, 0, 0], [-d, 0, 0], [0, 0, d], [0, 0, -d]];
+    for (const [x, y, z] of offsets) {
+        const pointLight = new THREE.PointLight(color);
+        pointLight.castShadow = true;
+        pointLight.shadow.bias = point.shadow.bias;
+        pointLight.shadow.mapSize.width = point.shadow.mapSize;
+        pointLight.shadow.mapSize.height = point.shadow.mapSize;
+        pointLight.position.set(x, y, z);
+        pointLight.distance = point.distance;
+        pointLight.power = point.power;
+        scene.add(pointLight);
+    }
+    scene.add(new THREE.AmbientLight(color, ambientIntensity));
 }
 
 light();
 
-let prawda = true, focusCheck = true, nastepne = false
-let solarCheck = 1, nextCheck = 0, solarReset = 0, planetNo = 0
-let planetyPrevPos, prev, transitionRestart
+let planetNo = 0
+let lowQualitySwitch = false
 
+const cameraRig = createCameraRig({
+    camera,
+    controls: orbit,
+    config: cameraConfig,
+    onChange: syncCameraUi,
+});
 
-function checkSolar() {
-    if (currentSolar == 1) return planetySun.length
-    else if (currentSolar == 2) return planetyBlackHole.length
+const statusDisplay = createCameraStatus(document.getElementById("cameraStatus"));
+const bracketsElement = document.getElementById("lockBrackets");
+const bracketsDisplay = createLockBrackets(bracketsElement, {
+    coordinates: bracketsElement.querySelector(".bracket-label"),
+    delta: bracketsElement.querySelector(".bracket-delta"),
+    progress: bracketsElement.querySelector(".bracket-progress-fill"),
+});
+const scrambler = createScrambler();
+const imagePreloader = createImagePreloader();
+const hudPreviousPosition = new THREE.Vector3();
+let hudPreviousTarget = null;
+let hudSpeed = 0;
+let lastSyncedMode = null;
+const hudTargetPosition = new THREE.Vector3();
+const hudProjected = new THREE.Vector3();
+
+function updateHud(dt) {
+    const body = activeBodies()[cameraRig.targetIndex];
+    if (!body) return;
+    body.mesh.getWorldPosition(hudTargetPosition);
+
+    if (hudPreviousTarget === body) {
+        hudSpeed = smoothValue(hudSpeed, movementSpeed(hudPreviousPosition, hudTargetPosition, dt), hudConfig.delta.smoothing);
+    } else {
+        hudSpeed = 0;
+        hudPreviousTarget = body;
+    }
+    hudPreviousPosition.copy(hudTargetPosition);
+
+    statusDisplay.show(cameraStatus(cameraRig.mode, cameraRig.targetIndex));
+
+    const bracketsState = lockBracketsState(cameraRig.mode, cameraRig.phaseProgress);
+    const frame = bracketsState.visibility === 'hidden' ? null : bracketFrameFor(body, bracketsState.closing);
+    bracketsDisplay.show(bracketsState, frame, {
+        coordinates: formatCoordinates(hudTargetPosition),
+        delta: formatDelta(hudSpeed),
+        progress: bracketsState.closing,
+    });
+}
+
+function bracketFrameFor(body, closing) {
+    hudProjected.copy(hudTargetPosition).project(camera);
+    if (hudProjected.z < -1 || hudProjected.z > 1) return null;
+    const viewport = { width: window.innerWidth, height: window.innerHeight };
+    const center = {
+        x: ((hudProjected.x + 1) / 2) * viewport.width,
+        y: ((1 - hudProjected.y) / 2) * viewport.height,
+    };
+    const distance = camera.position.distanceTo(hudTargetPosition);
+    const radius = screenRadius(body.radius, distance, camera.fov, viewport.height);
+    return bracketFrame(center, radius, viewport, closing, hudConfig.brackets);
+}
+
+function preloadTargetImages() {
+    const planet = planetsInfo[planetInfoSize()];
+    if (planet) imagePreloader.preload(planetImageUrls(planet.images, paths.images));
+}
+
+function infoTextElements() {
+    return [document.getElementById("podZdjeciem"), document.getElementById("inspekcjaDane")];
+}
+
+function activeBodies() {
+    return currentSolar == 1 ? planetySun : planetyBlackHole;
 }
 
 function next() {
-    removeDivs()
-    if (camera.position.x != 20 || camera.position.y != 20 || camera.position.z != 20) transitionCameraToDefault();
-    transitionRestart = false
-    orbitOnce = 0
-    if (solarCheck == 1) {
-        planetNo = 1
-        prev = 0
-    }
-    if (nastepne == true && camera.fov == 45 && solarCheck == 0) {
-        planetNo += 1
-        focusCheck = true
-        focusFalsePositive = 0
-        prev = planetNo - 1
-
-        if (planetNo == checkSolar()) {
-            planetNo = 1
-            prev = checkSolar() - 1
-            solarReset = 1
-        }
-    }
-    else if (nastepne == false) {
-        focusCheck = true
-    }
-    solarCheck = 0
-    document.getElementById("switch").checked = false
-    if (camera.fov == 10) {
-        nextCheck = 1
-    }
-    if (currentSolar == 2 && planetNo == 2) { planetNo = 6; prev = 1; }
-    if (currentSolar == 1 && planetNo == 3) { planetNo = 4; prev = 2; }
-    document.getElementById("solar").disabled = false
-    updatePlanetBarActive();
+    cameraRig.select(nextPlanetIndex(activeBodies(), cameraRig.targetIndex));
 }
+
 function solar() {
-    if (!transitionComplete) return;
-    transitionRestartCamera = false
-    transitionRestart = false
-    focusCheck = true
-    ignoreSun = false
-    solarCheck = 1
-    prev = planetNo
-    transitionPercentCamera = 0
-    planetNo = 0
-    focusFalsePositive = 0;
-    inspectFalsePositive = 0;
-    solarReset = 0
-    orbitOnce = 0
-
-    removeDivs();
-    orbitSettings();
-    hideInfo();
-    updatePlanetBarActive();
-
-    document.getElementById("switch").checked = false
-    document.getElementById("solar").disabled = true
-
+    cameraRig.showOverview();
 }
 
-
-let focusFalsePositive = 0
 function focus() {
-    if (!transitionComplete) return;
-    cameraPosCheck()
-    focusFalsePositive += 1
-    if (solarCheck == 1) {
-        focusFalsePositive = 0
-    }
-    if (focusFalsePositive == 1) {
-        focusCheck = false
-    }
-    if (focusFalsePositive == 2) {
-        focusCheck = true
-        focusFalsePositive = 0
-    }
-    // info()
+    cameraRig.setFocus(document.getElementById("switch").checked);
+    syncCameraUi();
 }
-let inspectFalsePositive = 0
-let lowQualitySwitch = false
 
 function lowQuality() {
-    if (document.getElementById("switch2").checked) {
-        lowQualitySwitch = true
+    lowQualitySwitch = document.getElementById("switch2").checked;
+}
+
+function syncCameraUi() {
+    const busy = cameraRig.isBusy();
+    const mode = cameraRig.mode;
+
+    if (planetNo !== cameraRig.targetIndex) {
+        planetNo = cameraRig.targetIndex;
+        info();
     }
-    else if (document.getElementById("switch2").checked == false) {
-        lowQualitySwitch = false
+
+    document.getElementById("next").disabled = busy;
+    document.getElementById("solar").disabled = busy;
+
+    const focusSwitch = document.getElementById("switch");
+    focusSwitch.disabled = busy || mode === 'overview';
+    focusSwitch.checked = cameraRig.isFocused();
+
+    if (mode === 'focusLock' && lastSyncedMode !== 'focusLock') preloadTargetImages();
+    if (mode === 'focused') {
+        if (lastSyncedMode !== 'focused') {
+            showInfo();
+            scrambler.reveal(infoTextElements(), hudConfig.scramble.duration);
+        }
+    } else {
+        scrambler.cancel();
+        hideInfo();
     }
+    lastSyncedMode = mode;
+
+    document.querySelectorAll(".planetBar-btn").forEach((btn) => btn.classList.toggle("disabled", busy));
+    updatePlanetBarActive();
 }
 
 const buttons = [
@@ -631,7 +310,7 @@ const buttons = [
 buttons.forEach(button => {
     const element = document.getElementById(button.id);
     element.addEventListener("click", function () {
-        if (!transitionComplete) return;
+        if (cameraRig.isBusy()) return;
         button.handler();
     });
 });
@@ -639,147 +318,23 @@ buttons.forEach(button => {
 document.getElementById("switch").addEventListener("change", focus)
 document.getElementById("switch2").addEventListener("change", lowQuality)
 document.getElementById("switch").checked = false;
-document.getElementById("solar").disabled = true;
 
-const planetsInfo = [
-    {
-        name: "Sun",
-        images: []
-    },
-    {
-        name: "Venus",
-        informacje: "Planet Venus is a rugged, orange-hued world known for its vast Gravel Wastes and Granite Highlands. The Gravel Wastes are expansive, unstable areas filled with gravel, creating a challenging terrain with frequent collapses.These biomes are ideal for gathering flint but are hazardous to navigate. The Granite Highlands feature towering granite cliffs and plateaus, offering an abundance of granite and occasional iron and copper veins embedded in the rock. The thin atmosphere casts a dusty haze over the landscape, giving the planet a unique, eerie appearance that adds to the adventurous exploration and resource-gathering experience.",
-        id: "VE-57",
-        informacjeDiam: "8,507 Blocks",
-        informacjeMass: "760,200 kBl",
-        informacjeRess: "Gold,<br>Sand,<br>&nbsp;Lumicite*",
-        informacjeOrbitalPeriod: "Orbital Period:<br>462 Days",
-        informacjeTemperature: "Temperature:<br>352°C / 665.6°F",
-        informacjeAxialTilt: "Axial Tilt:<br>3°",
-        images: ["cares", "caresOther", "mesa", "mesas", "mesass"]
-    },
-    {
-        name: "Earth",
-        informacje: "Planet Earth is a mysterious, cube-shaped planet orbiting a distant star. Its surface is a patchwork of biomes, from dense forests to vast deserts, each teeming with blocky life. The planet's core is a giant, pulsating redstone crystal, believed to power the strange gravity that keeps everything in its place. Rich in resources like iron, gold, and diamonds, Minecraft Earth is a miner's paradise. The planet's atmosphere is thick with pixelated clouds, and the sky shifts colors in a mesmerizing, digital pattern. Rumors suggest ancient structures and hidden treasures lie deep underground, waiting to be discovered.",
-        id: "ER-23",
-        informacjeDiam: "9,120 Blocks",
-        informacjeMass: "921,090 kBl",
-        informacjeRess: "Diamonds,<br>Soils,<br>&nbsp;Velvetvine*,<br>Redstone ",
-        informacjeOrbitalPeriod: "Orbital Period:<br>365.25 days",
-        informacjeTemperature: "Temperature:<br>15°C / 59°F",
-        informacjeAxialTilt: "Axial Tilt: <br>23.5°",
-        images: ["preview", "1kx1khonor2", "323", "Tython", "def", "orax", "explo", "key"]
-
-    },
-    {
-        name: "Moon"
-
-    },
-    {
-        name: "Saturn",
-        informacje: "SA-42, commonly known as Saturn, is a mesmerizing gas giant, renowned for its stunning rings of ice and rock that encircle the planet in a beautiful display. The upper atmosphere of Saturn is a dynamic, swirling mass of yellow, orange, and brown clouds, where floating islands of solid matter drift amidst the gaseous layers. Despite its harsh and turbulent environment, Saturn is rich in rare and valuable resources. Explorers can find Hydrocrystals floating within the atmosphere, Gasblossom plants glowing in the upper layers, and Etherium Ore embedded in the drifting islands. The planet’s frequent storms charge Stormstone with immense energy, while Ring Ice harvested from the rings is sought after for advanced crafting. Saturn’s unique environment offers a wealth of exotic materials, making it a challenging yet rewarding destination for adventurers.",
-        id: "SA-42",
-        informacjeDiam: "83,192 Blocks",
-        informacjeMass: "12,291,630 kBl",
-        informacjeRess: "&nbsp;Ring Ice*,<br>Terracota,<br>Gases,<br>&nbsp;Hydrocrystals",
-        informacjeOrbitalPeriod: "Orbital Period:<br10,756 days",
-        informacjeTemperature: "Temperature:<br>-178°C / -288.4",
-        informacjeAxialTilt: "Axial Tilt: <br>26.7°",
-        images: []
-    },
-    {
-        name: "Pluto",
-        informacje: "PL-09, commonly known as Pluto, is a remote and desolate dwarf planet, drifting at the edge of the solar system with a wide, elliptical orbit that spans centuries. Its frozen surface is a landscape of jagged ice cliffs, steep dirt hills, and deep impact craters, all shrouded in a dim, bluish twilight. Despite its isolation and extreme cold, Pluto harbors rare and valuable materials beneath its icy crust. Explorers can find Froststone, a unique mineral that glows faintly in the dark, and Ice Crystals, which are essential for crafting advanced tools and equipment. The planet's surface is also rich in Frozen Gas deposits, which can be harvested for fuel and energy. The harsh conditions and sparse resources make PL-09 a challenging yet intriguing destination for adventurers seeking to uncover its secrets.",
-        id: "PL-09",
-        informacjeDiam: "7,370 Blocks",
-        informacjeMass: "1,310,000 kBl",
-        informacjeRess: "&nbsp;Froststone*,<br>&nbsp;Ice Crystals*,<br>Frozen Gas,<br>Stones",
-        informacjeOrbitalPeriod: "Orbital Period:<br>732 days",
-        informacjeTemperature: "Temperature:<br>-223°C / -369.4",
-        informacjeAxialTilt: "Axial Tilt: <br>12.5°",
-        images: ["cany"]
-    },
-    {
-        name: "BlackHole",
-        images: []
-    },
-    {
-        name: "Pyrox",
-        informacje: "Planet Pyrox is a desolate, rocky world characterized by its harsh, volcanic landscape and extreme temperatures. The surface is dotted with active volcanoes, molten lava rivers, and jagged rock formations. The atmosphere is thin and filled with ash, creating a dim, reddish haze that obscures the sky. Despite its inhospitable environment, Pyrox is rich in valuable resources such as Pyroxium Ore, a rare mineral used in advanced technology and crafting. The planet's extreme conditions make it a challenging but rewarding destination for resource gathering and exploration.",
-        id: "PY-01",
-        informacjeDiam: "6,371 Blocks",
-        informacjeMass: "1,090,230 kBl",
-        informacjeRess: "&nbsp;Pyroxium Ore*,<br>Basalt,<br>Obsidian",
-        informacjeOrbitalPeriod: "Orbital Period:<br>102 days",
-        informacjeTemperature: "Temperature:<br>300°C / 572°F",
-        informacjeAxialTilt: "Axial Tilt: <br>23.5°",
-        images: ["Nether", "volcano"]
-    },
-    {
-        name: "Pyrox Blob",
-        images: []
-    },
-    {
-        name: "Pyrox Blob",
-        images: []
-    },
-    {
-        name: "Pyrox Blob",
-        images: []
-    },
-    {
-        name: "Pyrox Blob",
-        images: []
-    },
-    {
-        name: "Mirethul",
-        informacje: "Planet Mirethul is a mysterious, swampy world characterized by its dense, fog-laden atmosphere and treacherous terrain. The surface is covered in vast marshlands, with stagnant pools of murky water and thick vegetation that obscures visibility. Mirethul's unique ecosystem is home to a variety of strange and exotic creatures, adapted to the planet's harsh conditions. The atmosphere is rich in Mirethium Gas, a valuable resource used in advanced technology and crafting. Despite its inhospitable environment, Mirethul offers opportunities for exploration and resource gathering for those brave enough to navigate its dangers.",
-        id: "MI-22",
-        informacjeDiam: "5,001 Blocks",
-        informacjeMass: "820,070 kBl",
-        informacjeRess: "&nbsp;Mirethium Gas*,<br>Swamp Soil,<br>Marshwood",
-        informacjeOrbitalPeriod: "Orbital Period:<br>729 days",
-        informacjeTemperature: "Temperature:<br>25°C / 77°F",
-        informacjeAxialTilt: "Axial Tilt: <br>15°",
-        images: []
-    },
-    {
-        name: "Aerolith",
-        informacje: "Planet Aerolith is a floating, gaseous world characterized by its ethereal atmosphere and unique, cloud-like terrain. The surface is composed of dense clouds and gaseous formations that shift and change shape, creating a surreal and ever-changing landscape. Aerolith's atmosphere is rich in Aerolithium Gas, valuable to some, scary to the rest gas that allows user to shapeshift. The planet's low gravity allows for the formation of floating islands made of solidified gas, which can be explored for rare minerals and resources. Despite its inhospitable environment, Aerolith offers opportunities for exploration and resource gathering for those willing to brave its challenges.",
-        id: "AE-33",
-        informacjeDiam: "19,502 Blocks",
-        informacjeMass: "600,000 kBl",
-        informacjeRess: "&nbsp;Aerolithium Gas*,<br>Cloudstone,<br>Gaseous Crystals",
-        informacjeOrbitalPeriod: "Orbital Period:<br>365 days",
-        informacjeTemperature: "Temperature:<br>-10°C / 14°F",
-        informacjeAxialTilt: "Axial Tilt: <br>10°",
-        images: []
-    },
-    {
-        name: "Skarnis",
-        informacje: "Planet Skarnis is a rocky, mountainous world characterized by its rugged terrain and harsh climate. The surface is dominated by towering mountains, deep valleys, and rocky outcrops, creating a challenging environment for exploration. Skarnis is rich in valuable minerals and ores, including Skarnite, a rare resource used in spaceship technology. The planet's atmosphere is thin and cold, with frequent storms that can make navigation difficult. The far backside of the planet is perpetually shadowed, creating a frigid and inhospitable environment. Despite its inhospitable conditions, Skarnis offers opportunities for resource gathering and adventure for those willing to brave its challenges.",
-        id: "SK-44",
-        informacjeDiam: "29,345 Blocks",
-        informacjeMass: "1,234,567 kBl",
-        informacjeRess: "&nbsp;Skarnite*,<br>Rocky Soil,<br>Mountain Crystals",
-        informacjeOrbitalPeriod: "Orbital Period:<br>400 days",
-        informacjeTemperature: "Temperature:<br>5°C / 41°F",
-        informacjeAxialTilt: "Axial Tilt: <br>20°",
-        images: []
-    },
-    {
-        name: "Neptune",
-        informacje: "Planet Neptune is a distant, icy world characterized by its frigid temperatures and vast frozen landscapes. The surface is covered in thick layers of ice and snow, with towering ice formations and deep crevasses. Neptune's atmosphere is thin and cold, with strong winds that whip across the surface. Neptune is rich in valuable resources such as Ice Crystals. The planet's unique environment might soon be researchable, so far the atmospheric pressure is higher than deepest oceans of earth.",
-        id: "NE-55",
-        informacjeDiam: "7,021 Blocks",
-        informacjeMass: "1,500,000 kBl",
-        informacjeRess: "&nbsp;Ice Crystals*,<br>Frozen Soil,<br>Snowy Rocks",
-        informacjeOrbitalPeriod: "Orbital Period:<br>165 years",
-        informacjeTemperature: "Temperature:<br>-214°C / -353°F",
-        informacjeAxialTilt: "Axial Tilt: <br>28°",
-        images: []
-    }
-];
+const planetsInfo = [...systems.sun.bodies, ...systems.blackhole.bodies].map((body) => {
+    const info = bodyInfo[body.id];
+    return {
+        name: info.name,
+        informacje: info.text,
+        id: info.code,
+        informacjeDiam: info.diameter,
+        informacjeMass: info.mass,
+        informacjeRess: info.resources,
+        informacjeOrbitalPeriod: info.orbitalPeriod,
+        informacjeTemperature: info.temperature,
+        informacjeAxialTilt: info.axialTilt,
+        images: info.images ?? [],
+        preview: info.preview,
+    };
+});
 
 const nameElement = document.getElementById("name");
 const infElement = document.getElementById("informacje")
@@ -815,7 +370,7 @@ function info() {
             const createDiv = document.createElement("div")
             const createImg = document.createElement("img")
 
-            createImg.src = "/textures/images/" + planet.images[i] + ".webp"
+            createImg.src = paths.images + planet.images[i] + ".webp"
 
             createDiv.classList.add("slides", "removable")
             // createDiv.id = "removable"
@@ -833,7 +388,7 @@ function info() {
             const createDivDialog = document.createElement("div")
             const createImgDialog = document.createElement("img")
 
-            createImgDialog.src = "/textures/images/" + planet.images[i] + ".webp"
+            createImgDialog.src = paths.images + planet.images[i] + ".webp"
 
             createDivDialog.classList.add("column", "removable")
             // createDivDialog.id = "removable"
@@ -997,21 +552,6 @@ function removeDivs() {
 
 
 
-const planetPreviewMap = {
-    sun: "/textures/images/previews/sun.webp",
-    venus: "/textures/images/previews/venus.webp",
-    earth: "/textures/images/previews/earth.webp",
-    saturn: "/textures/images/previews/saturn.webp",
-    pluto: "/textures/images/previews/pluto.webp",
-    blackhole: "/textures/images/previews/blackhole.webp",
-    pyrox: "/textures/images/previews/pyrox.webp",
-    mirethul: "/textures/images/previews/mirethul.webp",
-    aerolith: "/textures/images/previews/aerolith.webp",
-    skarnis: "/textures/images/previews/skarnis.webp",
-    neptune: "/textures/images/previews/neptune.webp",
-};
-let planetBarActivation = false;
-let isPlanetBarTransition = false;
 function createPlanetBar() {
     const bar = document.getElementById("planetBar");
     bar.style.display = "flex";
@@ -1038,9 +578,8 @@ function createPlanetBar() {
         if (globalIdx === planetNo) btn.classList.add("active");
 
         const img = document.createElement("img");
-        const planetKey = (planet.planeta || planet.name || "").toLowerCase();
-        img.src = planetPreviewMap[planetKey] || "/textures/images/previews/default.webp";
-        img.alt = planet.name || planet.planeta || "Planet";
+        img.src = paths.previews + (planet.preview ?? paths.defaultPreview) + ".webp";
+        img.alt = planet.name || "Planet";
         img.style.marginRight = "8px";
         img.style.alignSelf = "center";
         img.draggable = false;
@@ -1048,13 +587,11 @@ function createPlanetBar() {
 
         const nameSpan = document.createElement("span");
         nameSpan.className = "planetBar-name";
-        nameSpan.textContent = planet.planeta || planet.name || "";
+        nameSpan.textContent = planet.name || "";
         btn.appendChild(nameSpan);
 
         btn.onclick = () => {
-            isPlanetBarTransition = true;
-            document.querySelectorAll(".planetBar-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
+            if (cameraRig.isBusy()) return;
             goToPlanet(globalIdx);
         };
         bar.appendChild(btn);
@@ -1066,68 +603,16 @@ function delPlanetBar() {
     bar.style.display = "none";
 }
 
-let disabledOverdrive = false;
-function setPlanetBarButtonsDisabled(disabled) {
-    disabledOverdrive = true;
-    document.querySelectorAll('.planetBar-btn').forEach(btn => {
-        if (disabled) {
-            btn.classList.add('disabled');
-        } else {
-            btn.classList.remove('disabled');
-        }
-    });
-}
-
-function goToPlanet(newIndex) {
-    if ((newIndex == 0 || newIndex == planetySun.length + 1) && camera.fov < 45) {
-        return;
-    } // Prevent going to the first planet in the solar system or the first black hole
-    setPlanetBarButtonsDisabled(true);
-    solarCheck = 0;
-    prev = planetNo;
-    planetNo = currentSolar == 1 ? newIndex : newIndex - planetySun.length;
-    transitionRestart = false;
-    transitionPercent = 0;
-    planetBarActivation = true;
-    removeDivs();
-    info();
+function goToPlanet(globalIdx) {
+    const index = currentSolar == 1 ? globalIdx : globalIdx - planetySun.length;
+    cameraRig.select(index, { fast: true });
 }
 
 function updatePlanetBarActive() {
-    document.querySelectorAll(".planetBar-btn").forEach(b => b.classList.remove("active"));
-    const bar = document.getElementById("planetBar");
-    const buttons = bar.querySelectorAll(".planetBar-btn");
-
-    let globalIndexes = [];
-    if (currentSolar == 1) {
-        for (let i = 0; i < planetySun.length; i++) {
-            if (!planetySun[i].isMoon) globalIndexes.push(i);
-        }
-    } else {
-        for (let i = 0; i < planetyBlackHole.length; i++) {
-            if (!planetyBlackHole[i].isMoon) globalIndexes.push(i + planetySun.length);
-        }
-    }
-    const activeIdx = globalIndexes.indexOf(
-        currentSolar == 1 ? planetNo : planetNo + planetySun.length
-    );
-    if (buttons[activeIdx]) buttons[activeIdx].classList.add("active");
-
-    if (currentSolar == 1) {
-        if (camera.fov < 45 && buttons[0]) {
-            buttons[0].classList.add("disabled");
-            console.log("disabled");
-        } else if (buttons[0] && !disabledOverdrive) {
-            buttons[0].classList.remove("disabled");
-        }
-    }
-    if (currentSolar == 2) {
-        if (camera.fov < 45 && buttons[0]) {
-            buttons[0].classList.add("disabled");
-        } else if (buttons[0] && !disabledOverdrive) {
-            buttons[0].classList.remove("disabled");
-        }
-    }
+    const bodies = activeBodies();
+    const visible = bodies.map((_, i) => i).filter((i) => !bodies[i].isMoon);
+    const activeIdx = visible.indexOf(cameraRig.targetIndex);
+    document.querySelectorAll(".planetBar-btn").forEach((btn, i) => btn.classList.toggle("active", i === activeIdx));
 }
 
 const contact = document.getElementById("contact");
@@ -1145,7 +630,7 @@ contact.addEventListener("click", () => {
 
 const masterGalleryImages = planetsInfo
     .filter(planet => Array.isArray(planet.images) && planet.images.length > 0)
-    .flatMap(planet => planet.images.map(image => '/textures/images/' + image + '.webp'));
+    .flatMap(planet => planet.images.map(image => paths.images + image + '.webp'));
 
 const masterGallery = document.getElementById("masterGallery");
 
@@ -1236,149 +721,16 @@ function openDialogWithHistory(dialogId) {
     history.pushState({ dialogOpen: true, dialogId }, "");
 }
 
-let transitionComplete = false
+const INFO_PANEL_IDS = ["inspekcja", "inspekcjaDane", "container"];
 
-function cameraMoveNegative(val) {
-    if (transitionComplete) {
-        if (camera.fov >= 20) {
-            camera.fov -= val
-            document.getElementById("switch").checked = true;
-            updatePlanetBarActive();
-        }
-        else if (camera.fov >= 10 && camera.fov < 20) {
-            cameraRampUp += 0.07
-            if (cameraRampUp >= 1) {
-                camera.fov -= userCameraMoveSpeed
-            }
-
-        }
-        if (camera.fov <= 10) {
-            info()
-            document.getElementById("inspekcja").style.display = "block";
-            document.getElementById("container").style.display = "block";
-            document.getElementById("inspekcjaDane").style.display = "block";
-            cameraRampUp = 0
-            camera.fov = 10
-        }
-        if (planetNo == checkSolar() - 1) {
-            solarReset = 1
-        }
-    }
-
-}
-function cameraMovePositive(val) {
-    camera.fov += val
-
-    if (camera.fov > 20) {
-        // info()
-        // console.log("asds");
-        document.getElementById("inspekcja").style.display = "none";
-        document.getElementById("inspekcjaDane").style.display = "none";
-        document.getElementById("container").style.display = "none";
-
-        inspectFalsePositive = 0
-    }
-    updatePlanetBarActive();
-}
-
-function cameraSettings(lookat) {
-    // camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 1, 10000)
-    cameraFallback(cameraOldPos)
-    camera.lookAt(lookat)
-    if (camera.fov == 10) {
-
-    }
-
+function showInfo() {
+    for (const id of INFO_PANEL_IDS) document.getElementById(id).style.display = "block";
 }
 
 function hideInfo() {
-    document.getElementById("inspekcja").style.display = "none";
-    document.getElementById("inspekcjaDane").style.display = "none";
-    document.getElementById("container").style.display = "none";
+    for (const id of INFO_PANEL_IDS) document.getElementById(id).style.display = "none";
 }
 hideInfo()
-let transitionSpeed = 0.0005
-let transitionPercent = 0
-
-prev = 0
-function cameraTransition(planetyPos) {
-    document.getElementById("switch").disabled = true;
-    document.getElementById("solar").disabled = true;
-    if (checkPlanetaryState()[prev]) {
-        planetyPrevPos = checkPlanetaryState()[prev].blok.kostka.getWorldPosition(new THREE.Vector3());
-    } else {
-        planetyPrevPos = planetyPos;
-    }
-    let customSpeed = isPlanetBarTransition ? 0.009 : transitionSpeed;
-    let transition = new THREE.Vector3().lerpVectors(planetyPrevPos, planetyPos, transitionPercent)
-    if (transitionPercent < 1 && transitionRestart == false) {
-        transitionPercent += customSpeed + 0.0005
-        transitionSpeed = customSpeed + 0.0005
-        document.getElementById("next").disabled = true;
-        if (transitionPercent > 0.4) {
-            transitionSpeed = transitionSpeed - 0.001
-        }
-        if (transitionSpeed <= 0) {
-            transitionSpeed = 0.005
-        }
-        transitionComplete = false
-        camera.lookAt(transition)
-    }
-    else {
-        transitionPercent = 0;
-        transitionSpeed = 0.005;
-        transitionRestart = true;
-        transitionComplete = true;
-        planetBarActivation = false;
-        isPlanetBarTransition = false;
-        disabledOverdrive = false;
-        orbitConfirm = 1;
-        document.getElementById("next").disabled = false;
-        document.getElementById("switch").disabled = false;
-        document.getElementById("solar").disabled = false;
-        setPlanetBarButtonsDisabled(false);
-        updatePlanetBarActive();
-        camera.lookAt(planetyPos);
-    }
-    return transitionComplete
-}
-
-let transitionPercentCamera = 0
-let transitionSpeedCamera = 0.0001
-let transitionRestartCamera = false
-
-function cameraFallback(cameraOldPos) {
-    let cameraFixed = new THREE.Vector3(20, 20, 20)
-    let transitionCamera = new THREE.Vector3().lerpVectors(cameraOldPos, cameraFixed, transitionPercentCamera)
-    if (transitionPercentCamera < 1 && transitionRestartCamera == false) {
-        transitionPercentCamera += transitionSpeedCamera
-        transitionSpeedCamera = transitionSpeedCamera + 0.00005
-        camera.position.set(transitionCamera.x, transitionCamera.y, transitionCamera.z)
-    }
-    else {
-        transitionPercentCamera = 0
-        transitionSpeedCamera = 0.0001
-        transitionRestartCamera = true
-        camera.position.set(20, 20, 20)
-
-    }
-
-}
-function earthAdd() {
-    planetySun[2].blok.kostka.add(planetySun[3].blokObj.kostka)
-    troll = 0
-}
-let pyroxAdded = false
-function pyroxAdd() {
-    const pyrox = planetyBlackHole.find(el => el.planeta === "pyrox");
-    const pyroxBlobs = planetyBlackHole.filter(el => el.planeta && el.planeta.startsWith("pyroxBlob"));
-    if (pyrox && pyroxBlobs.length) {
-        pyroxBlobs.forEach(blob => {
-            pyrox.blok.kostka.add(blob.blokObj.kostka);
-        });
-    }
-    pyroxAdded = true;
-}
 
 let loadingCompleted = false
 let val = 100
@@ -1394,13 +746,7 @@ function playVideo() {
 }
 playVideo()
 function checkPlanetsLoaded() {
-    if (currentSolar == 1) {
-        loadingCompleted = planetLoadedCount >= planetySun.length;
-    } else if (currentSolar == 2) {
-        loadingCompleted = planetBlackHoleLoadedCount >= planetyBlackHole.length;
-    } else {
-        loadingCompleted = false;
-    }
+    loadingCompleted = systemReady();
 }
 let opacityFall = false
 vid.addEventListener('ended', () => {
@@ -1410,25 +756,9 @@ vid.addEventListener('ended', () => {
         if (vid) {
             opacityFall = true
             rumpup = false
-            if (currentSolar == 1) earthAdd();
-            if (currentSolar == 2) {
-                pyroxAdd();
-            }
-            transitionRestartCamera = false
-            transitionRestart = false
-            focusCheck = true
-            solarCheck = 1
-            prev = planetNo
-            transitionPercentCamera = 0
-            planetNo = 0
-            focusFalsePositive = 0;
-            inspectFalsePositive = 0;
-            solarReset = 0
-            orbitOnce = 0
             if (!resetingWithButton) {
                 createPlanetBar();
                 startFalldown();
-                orbitSettings();
             }
             const firstBtn = document.getElementById("planetBar").querySelector(".planetBar-btn");
             firstBtn.classList.add("active");
@@ -1540,63 +870,21 @@ function startTransitionOut(callback) {
 
 function unloadCurrentSolar(callback) {
     speedFall = 3;
-    unloadedCount = 0;
-    clearScene();
+    if (activeSystem) activeSystem.unload();
+    activeSystem = null;
     removeDivs();
     const dialogImg = document.getElementById("dialogImg");
     if (dialogImg) dialogImg.src = "";
-    const totalToUnload = checkPlanetaryState().length;
     callback();
 }
 
-function loadNextSolar(callback) {
-    oneTimeTicket = true;
-    if (currentSolar == 1) {
-        currentSolar = 2;
-        planetLoadedCount = 0;
-        planetBlackHoleLoadedCount = 0;
-        prev = 0;
-        planetNo = 0;
-        removeDivs();
-        delPlanetBar();
-        loadBlackHoleSolar();
-
-        function checkLoaded() {
-            console.log("len:" + scene.children.length);
-            if (planetBlackHoleLoadedCount >= planetyBlackHole.length) {
-                orbitSettings();
-                createPlanetBar();
-                light();
-                callback();
-            } else {
-                setTimeout(checkLoaded, 20);
-            }
-        }
-        checkLoaded();
-    } else {
-        currentSolar = 1;
-        planetLoadedCount = 0;
-        planetBlackHoleLoadedCount = 0;
-        prev = 0;
-        planetNo = 0;
-        troll = 1;
-        removeDivs();
-        delPlanetBar();
-        loadSunSolar();
-
-        function checkLoaded() {
-            console.log("len:" + scene.children.length);
-            if (planetLoadedCount >= planetySun.length) {
-                orbitSettings();
-                createPlanetBar();
-                light();
-                callback();
-            } else {
-                setTimeout(checkLoaded, 20);
-            }
-        }
-        checkLoaded();
-    }
+async function loadNextSolar(callback) {
+    currentSolar = currentSolar == 1 ? 2 : 1;
+    removeDivs();
+    delPlanetBar();
+    await loadSystem(currentSolar);
+    createPlanetBar();
+    callback();
 }
 
 function startTransitionIn() {
@@ -1605,79 +893,9 @@ function startTransitionIn() {
     // scene.traverse(obj => {
     //     if (obj.isLight) obj.castShadow = false;
     // });
-    // orbitSettings();
-    planetNo = 0;
     info();
 }
 
-let unloadedCount = 0
-
-function unloadModels(model) {
-    // Remove from parent if needed
-    if (model.parent) model.parent.remove(model);
-    scene.remove(model);
-
-    model.traverse((child) => {
-        if (child.isMesh) {
-            // Dispose geometry
-            if (child.geometry) child.geometry.dispose();
-
-            // Dispose textures
-            if (child.material) {
-                if (Array.isArray(child.material)) {
-                    child.material.forEach(mat => {
-                        if (mat.map) mat.map.dispose();
-                        if (mat.lightMap) mat.lightMap.dispose();
-                        if (mat.bumpMap) mat.bumpMap.dispose();
-                        if (mat.normalMap) mat.normalMap.dispose();
-                        if (mat.aoMap) mat.aoMap.dispose();
-                        if (mat.emissiveMap) mat.emissiveMap.dispose();
-                        if (mat.specularMap) mat.specularMap.dispose();
-                        mat.dispose();
-                    });
-                } else {
-                    if (child.material.map) child.material.map.dispose();
-                    if (child.material.lightMap) child.material.lightMap.dispose();
-                    if (child.material.bumpMap) child.material.bumpMap.dispose();
-                    if (child.material.normalMap) child.material.normalMap.dispose();
-                    if (child.material.aoMap) child.material.aoMap.dispose();
-                    if (child.material.emissiveMap) child.material.emissiveMap.dispose();
-                    if (child.material.specularMap) child.material.specularMap.dispose();
-                    child.material.dispose();
-                }
-            }
-        }
-    });
-
-    // Remove references from your planet data
-    for (const planet of [...planetySun, ...planetyBlackHole]) {
-        if (planet.blok.kostka === model) planet.blok.kostka = null;
-        if (planet.blokObj.kostka === model) planet.blokObj.kostka = null;
-    }
-
-    unloadedCount++;
-}
-
-function clearScene() {
-    for (let i = scene.children.length - 1; i >= 0; i--) {
-        const obj = scene.children[i];
-
-        if (obj.name === "starfield") continue;
-
-        scene.remove(obj);
-
-        if (obj.isMesh) {
-            if (obj.geometry) obj.geometry.dispose();
-            if (obj.material) {
-                if (Array.isArray(obj.material)) {
-                    obj.material.forEach(mat => mat.dispose());
-                } else {
-                    obj.material.dispose();
-                }
-            }
-        }
-    }
-}
 let opacityVal = 100
 let speedFall = 2.5
 function opacityRumpup() {
@@ -1688,7 +906,6 @@ function opacityRumpup() {
     allLoaded.style.opacity = opacityVal + "%"
     if (vid.style.opacity >= 1.5) {
         rumpup = false
-        planetLoadedCount = planetLoadedCount - unloadedCount;
     }
     if (vid.style.opacity <= 1.5) {
         opacityVal += speedFall
@@ -1698,32 +915,6 @@ function opacityRumpup() {
         plate.style.zIndex = 10;
         nextSolar();
 
-    }
-}
-
-function transitionCameraToDefault(targetPos = new THREE.Vector3(20, 20, 20), speed = 0.02) {
-    if (!camera.position.equals(targetPos)) {
-        let transitionInterval = setInterval(() => {
-            camera.position.lerp(targetPos, speed);
-            camera.updateProjectionMatrix();
-            // Stop when close enough
-            if (camera.position.distanceTo(targetPos) < 0.01) {
-                camera.position.copy(targetPos);
-                camera.updateProjectionMatrix();
-                clearInterval(transitionInterval);
-            }
-        }, 16); // ~60fps
-    }
-}
-
-let cameraRampUp = 0, troll = 1, orbitOnce = 0, orbitConfirm = 0, wasSolarCheckZero = false
-const target = orbit.target;
-const userCameraMoveSpeed = 0.5
-function checkPlanetaryState() {
-    if (currentSolar == 1) {
-        return planetySun
-    } else if (currentSolar == 2) {
-        return planetyBlackHole
     }
 }
 
@@ -1756,229 +947,34 @@ function isMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
-let ignoreSun = false
-
-function animate() {
-
+function animate(time = performance.now()) {
     if (isMobile()) {
         console.log("Mobile device detected, disabling animations.");
-        return; // Disable animations on mobile devices
+        return;
+    }
+    if (!systemReady()) {
+        renderLoopRunning = false;
+        return;
     }
 
-    if (currentSolar == 1 && planetLoadedCount < planetySun.length) return;
-    if (currentSolar == 2 && planetBlackHoleLoadedCount < planetyBlackHole.length) return;
+    const frames = framesBetween(time - lastFrameTime, motionConfig.maxFrames, motionConfig.fps);
+    lastFrameTime = time;
 
-    oneTimeTicket = false
-    if (planetySun[2].blok.kostka != null && planetySun[3].blokObj.kostka != null && troll == 1) earthAdd()
-    if (planetyBlackHole[2].blok.kostka != null && planetyBlackHole[3].blokObj.kostka != null && pyroxAdded == false) pyroxAdd()
-    cameraPosCheck()
-    camera.updateProjectionMatrix()
+    cameraRig.update(frames / motionConfig.fps);
+    updateHud(frames / motionConfig.fps);
+    activeSystem.update(frames);
+    render();
 
-    orbitZoom.target.set(target.x, target.y, target.z)
-    orbitZoom.update();
+    requestAnimationFrame(animate);
+}
 
-    if (planetNo != 0) clampCameraPosition();
-
-    if (checkPlanetaryState()[planetNo] && checkPlanetaryState()[planetNo].isMoon == true) { planetNo++; }
-
-    let planetyPos = checkPlanetaryState()[planetNo].blok.kostka.getWorldPosition(new THREE.Vector3());
-
-    if (planetBarActivation) cameraTransition(planetyPos)
-
-    if (currentSolar == 2 && camera.fov <= 20) {
-        // scene.traverse(obj => {
-        //     if (obj.isLight) obj.castShadow = false;
-        // });
-        // renderer.shadowMap.enabled = false;
-    }
-    camera.lookAt(planetyPos)
-    if (solarCheck == 0) {
-        if (!wasSolarCheckZero) {
-            document.getElementById("switch").disabled = false;
-            wasSolarCheckZero = true;
-        }
-
-        if (!focusCheck && camera.fov > 10 && nextCheck == 0) { // zoomowanie kamery na planete
-            if (camera.fov < 10) {
-                camera.fov = 10
-            }
-            if (focusFalsePositive == 2) {
-                focusFalsePositive = 0
-                camera.fov = 45
-            }
-
-            prev = planetNo - 1
-            console.log(prev, (currentSolar == 1 ? planetySun.length - 2 : planetyBlackHole.length - 2), ignoreSun);
-
-            if (prev == 0 && ignoreSun) prev = (currentSolar == 1 ? planetySun.length - 1 : planetyBlackHole.length - 1);
-            if (prev < 0) {
-                prev = 0
-            }
-
-            cameraTransition(planetyPos);
-            if (transitionComplete) {
-                // cameraSettings(planetyPos);
-                cameraMoveNegative(userCameraMoveSpeed)
-            }
-        }
-        if (focusCheck && camera.fov >= 10 && camera.fov <= 45) { // oddalnie kamery po PlanetFocus
-            cameraMovePositive(userCameraMoveSpeed)
-
-            camera.lookAt(planetyPos)
-            if (planetNo == 0) {
-                orbit.update();
-            }
-
-            if (camera.fov > 45) {
-                camera.fov = 45
-                nastepne = true
-                orbitConfirm = 0
-                if (prev == null) {
-                    prev = planetNo - 1
-                }
-
-                cameraTransition(planetyPos)
-            }
-
-        }
-    }
-    else if (solarCheck == 1 && camera.fov >= 10 || camera.fov < 45 && planetNo == 0) { // oddalanie kamery jak jest fov < 45 na słońcu
-        wasSolarCheckZero = false;
-        if (focusCheck && camera.fov < 45) cameraMovePositive(userCameraMoveSpeed)
-
-        if (camera.fov < 45) {
-            cameraSettings(planetyPos)
-        }
-        if (camera.fov >= 45) {
-            camera.fov = 45
-            if (transitionComplete) {
-                if (orbitOnce == 0) {
-                    orbitConfirm = 1
-                    orbitSettings()
-                    orbitOnce = 1
-                }
-                orbit.update()
-
-            }
-
-        }
-    }
-    if (nextCheck == 1) { // oddalanie kamery i zmiana targetu jak przyblizona i klikniete next
-        cameraMovePositive(userCameraMoveSpeed)
-        hideInfo()
-        cameraSettings(planetyPos)
-        if (camera.fov >= 45) {
-            camera.fov = 45
-            if (planetNo == checkSolar() - 1) {
-                planetNo = 1
-                ignoreSun = true
-            } else {
-                planetNo += 1
-            }
-            nextCheck = 0
-        }
-    }
-    if (solarCheck == 1) {
-        document.getElementById("switch").checked = false;
-        cameraTransition(planetyPos)
-        document.getElementById("switch").disabled = true;
-
-    }
-    if (solarCheck == 1 && planetNo == 0 && focusCheck == true && focusFalsePositive == 0 && camera.fov == 45) {
-        if (transitionComplete) {
-            orbit.update()
-        }
-        else {
-            cameraTransition(planetyPos)
-        }
-    }
-    if (orbitConfirm == 0) {
-        cameraFallback(cameraOldPos)
-    }
-    if (sun && currentSolar == 1) {
-
-        planetySun.forEach(el => {
-
-            if (el.blok.x != null) el.blok.kostka.position.x = el.blok.x
-            if (el.blok.y != null) el.blok.kostka.position.y = el.blok.y
-            if (el.blok.z != null) el.blok.kostka.position.z = el.blok.z
-            if (el.blok.rotation != null) el.blok.kostka.rotation.y += el.blok.rotation
-            if (el.planeta == 'sun' || el.planeta == 'BlackHole') return
-            if (el.blokObj.kostka.position.x != null) el.blokObj.kostka.position.x = el.blokObj.x
-            if (el.blokObj.kostka.position.y != null) el.blokObj.kostka.position.y = el.blokObj.y
-            if (el.blokObj.kostka.position.z != null) el.blokObj.kostka.position.z = el.blokObj.z
-            if (el.blokObj.kostka.rotation.y != null) el.blokObj.kostka.rotation.y += el.blokObj.rotation
-            if (el.planeta == 'earth') {
-
-                const moon = planetySun.filter((element) => element.planeta == 'moon')[0].blok.kostka
-                const moonObj = planetySun.filter((element) => element.planeta == 'moon')[0].blokObj.kostka
-
-                if (el.blok.kostka.rotation.x > 0.5) prawda = false
-                else if (el.blok.kostka.rotation.x < -0.5) prawda = true
-                if (!prawda) {
-                    el.blok.kostka.rotation.x -= 0.002
-                    moon.rotation.x -= 0.01
-
-                }
-                else {
-                    el.blok.kostka.rotation.x += 0.002
-                    moon.rotation.y += 0.01
-                }
-                moonObj.position.z += 0.5
-
-            }
-            if (el.planeta == 'saturn') {
-
-                if (el.blok.kostka.rotation.x > 0.7) prawda = false
-                else if (el.blok.kostka.rotation.x < -0.7) prawda = true
-                if (!prawda) el.blok.kostka.rotation.x += 0.002
-                else el.blok.kostka.rotation.x -= 0.002
-            }
-
-        });
-    }
-
-    if (hole && currentSolar == 2) {
-        planetyBlackHole.forEach(el => {
-            if (el.blok.x != null) el.blok.kostka.position.x = el.blok.x
-            if (el.blok.y != null) el.blok.kostka.position.y = el.blok.y
-            if (el.blok.z != null) el.blok.kostka.position.z = el.blok.z
-            if (el.blok.rotation != null) el.blok.kostka.rotation.y += el.blok.rotation
-            if (el.planeta == 'BlackHole') return
-            if (el.blokObj.kostka.position.x != null) el.blokObj.kostka.position.x = el.blokObj.x
-            if (el.blokObj.kostka.position.y != null) el.blokObj.kostka.position.y = el.blokObj.y
-            if (el.blokObj.kostka.position.z != null) el.blokObj.kostka.position.z = el.blokObj.z
-            if (el.blokObj.kostka.rotation.y != null) el.blokObj.kostka.rotation.y += el.blokObj.rotation
-            // Animate all pyroxBlob planets
-            const pyrox = planetyBlackHole.find(element => element.planeta === 'pyrox');
-            const pyroxBlobs = planetyBlackHole.filter(element => element.planeta && element.planeta.startsWith('pyroxBlob'));
-
-            if (pyrox) {
-                pyroxBlobs.forEach(blob => {
-                    const pyroxBlob = blob.blok.kostka;
-                    const pyroxObj = blob.blokObj.kostka;
-
-                    if (pyrox.blok.kostka.rotation.x > 0.5) prawda = false;
-                    else if (pyrox.blok.kostka.rotation.x < -0.5) prawda = true;
-                    if (!prawda) {
-                        pyrox.blok.kostka.rotation.x -= 0.0001;
-                        pyroxBlob.rotation.x -= 0.001;
-                    } else {
-                        pyrox.blok.kostka.rotation.x += 0.0001;
-                    }
-                });
-            }
-        });
-    }
-
+function render() {
     if (lowQualitySwitch == false) {
         composer.render();
-        // renderer.render(scene, camera);
     } else {
         renderer.setClearColor(0x000000);
         renderer.render(scene, camera);
     }
-    requestAnimationFrame(animate);
 }
 function onDocumentMouseMove(event) {
 
@@ -1994,5 +990,18 @@ window.addEventListener("resize", function () {
     bloomPass.setSize(window.innerWidth / 2, window.innerHeight / 2)
     composer.setSize(window.innerWidth, window.innerHeight);
 });
+
+if (new URLSearchParams(location.search).has('test')) {
+    window.__solar = {
+        get system() { return currentSolar; },
+        get planet() { return cameraRig.targetIndex; },
+        get fov() { return camera.fov; },
+        get transitionComplete() { return !cameraRig.isBusy(); },
+        get cameraMode() { return cameraRig.mode; },
+        get loaded() {
+            return systemReady();
+        },
+    };
+}
 
 
