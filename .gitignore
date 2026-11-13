@@ -30,3 +30,11 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# claude
+.claude/
+
+# tests
+tests/
+test-results/
+playwright*
