@@ -30,6 +30,7 @@ import { createScrambler } from './ui/scrambleText.js';
 import { createImagePreloader, planetImageUrls } from './ui/preloadImages.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.debug.checkShaderErrors = import.meta.env.DEV;
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -135,20 +136,100 @@ let activeSystem = null
 let renderLoopRunning = false
 const SYSTEM_KEYS = { 1: 'sun', 2: 'blackhole' };
 
+const systemCache = new Map();
+
+/**
+ * Ładuje układ raz i trzyma go w pamięci; kolejne wywołania zwracają ten sam układ.
+ * Świeżo załadowany układ jest od razu w scenie.
+ * @param {number} solarNo - numer układu (1: Słońce, 2: czarna dziura)
+ * @returns {Promise<object>} układ z world/solarSystem.js
+ */
+async function prepareSystem(solarNo) {
+    if (!systemCache.has(solarNo)) {
+        const system = await loadSolarSystem(systems[SYSTEM_KEYS[solarNo]], { scene });
+        system.solarNo = solarNo;
+        system.warmed = false;
+        systemCache.set(solarNo, system);
+    }
+    return systemCache.get(solarNo);
+}
+
+/**
+ * Kompiluje shadery i wysyła tekstury układu na GPU, zanim zostanie pokazany.
+ * @param {object} system - układ z prepareSystem
+ * @returns {Promise<void>}
+ */
+async function warmSystem(system) {
+    if (system.warmed) return;
+    warpStars.object.visible = true;
+    await renderer.compileAsync(scene, camera);
+    warpStars.object.visible = false;
+    await uploadTexturesGradually(system.root);
+    system.warmed = true;
+}
+
+/**
+ * Pokazuje układ: dodaje go do sceny, podpina pod kamerę i uruchamia pętlę animacji.
+ * @param {number} solarNo - numer układu
+ * @returns {Promise<void>}
+ */
 async function loadSystem(solarNo) {
-    const system = await loadSolarSystem(systems[SYSTEM_KEYS[solarNo]], { scene });
-    system.solarNo = solarNo;
+    const system = await prepareSystem(solarNo);
+    scene.add(system.root);
     if (solarNo == 1) planetySun = system.bodies;
     else planetyBlackHole = system.bodies;
+    await warmSystem(system);
     activeSystem = system;
     cameraRig.setBodies(system.bodies);
-    await renderer.compileAsync(scene, camera);
     if (!renderLoopRunning) {
         renderLoopRunning = true;
         animate();
     }
 }
-loadSystem(1).catch(console.error);
+
+/**
+ * Start strony: pod ekranem ładowania przygotowuje najpierw drugi układ (jedna ukryta klatka
+ * kompiluje wszystkie shadery, także cieni, i wysyła tekstury), odkłada go, a potem pokazuje pierwszy.
+ * Dzięki temu przelot między układami nie musi niczego ładować ani kompilować.
+ * @returns {Promise<void>}
+ */
+async function boot() {
+    const background = await prepareSystem(2);
+    planetyBlackHole = background.bodies;
+    await warmSystem(background);
+    render();
+    scene.remove(background.root);
+    await loadSystem(1);
+}
+boot().catch(console.error);
+
+/**
+ * Czeka na następną klatkę animacji.
+ * @returns {Promise<number>}
+ */
+function nextFrame() {
+    return new Promise((resolve) => requestAnimationFrame(resolve));
+}
+
+/**
+ * Wysyła tekstury modelu na GPU po jednej na klatkę, żeby nie robić tego naraz w pierwszej klatce
+ * z nowym układem (to dawało widoczne przycięcie animacji).
+ * @param {THREE.Object3D} root - model albo cały układ
+ * @returns {Promise<void>}
+ */
+async function uploadTexturesGradually(root) {
+    const textures = new Set();
+    root.traverse((node) => {
+        if (!node.isMesh) return;
+        for (const value of Object.values(node.material)) {
+            if (value?.isTexture) textures.add(value);
+        }
+    });
+    for (const texture of textures) {
+        renderer.initTexture(texture);
+        await nextFrame();
+    }
+}
 
 function systemReady() {
     return activeSystem !== null && activeSystem.solarNo === currentSolar;
@@ -663,12 +744,13 @@ function createPlanetBar() {
     }
 }
 /**
- * Chowa pasek planet w dół (albo wysuwa go z powrotem) animacją z CSS (klasa `stowed`).
- * @param {boolean} stowed - true: schowany, false: widoczny
+ * Chowa dolną nawigację (Contact, pasek planet z napisem, Gallery) w dół albo wysuwa ją z powrotem,
+ * animacją z CSS (klasa `stowed`).
+ * @param {boolean} stowed - true: schowana, false: widoczna
  * @returns {void}
  */
-function stowPlanetBar(stowed) {
-    document.getElementById("planetBar").classList.toggle("stowed", stowed);
+function stowNavigation(stowed) {
+    document.getElementById("navs").classList.toggle("stowed", stowed);
 }
 
 function goToPlanet(globalIdx) {
@@ -876,14 +958,14 @@ function nextSolar() {
  */
 function startWarp() {
     slideArrow.hide();
-    stowPlanetBar(true);
+    stowNavigation(true);
     warp.start({
         onCruise: () => {
             unloadCurrentSolar();
             loadNextSolar()
                 .then(() => {
                     warp.arrive();
-                    stowPlanetBar(false);
+                    stowNavigation(false);
                 })
                 .catch(console.error);
         },
@@ -896,7 +978,7 @@ function startWarp() {
 }
 
 function unloadCurrentSolar() {
-    if (activeSystem) activeSystem.unload();
+    if (activeSystem) scene.remove(activeSystem.root);
     activeSystem = null;
     removeDivs();
     const dialogImg = document.getElementById("dialogImg");
