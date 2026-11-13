@@ -1,0 +1,188 @@
+#cameraStatus {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+    margin: 0;
+    padding: 8px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--panel-border);
+    background-color: var(--panel-bg);
+    color: var(--text-muted);
+    font-family: Minecraft, system-ui, sans-serif;
+    font-size: 1.1em;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+}
+
+#cameraStatus[data-state="visible"] {
+    opacity: 1;
+    transition: none;
+}
+
+#cameraStatus[data-state="fading"] {
+    opacity: 0;
+    transition: opacity 1.2s ease-out;
+}
+
+#cameraStatus[data-state="hidden"] {
+    opacity: 0;
+    transition: none;
+}
+
+#lockBrackets {
+    --bracket-color: var(--text-muted);
+    --bracket-arm: 22%;
+    --bracket-line: 2px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 15;
+    pointer-events: none;
+    opacity: 0;
+}
+
+#lockBrackets .bracket {
+    position: absolute;
+    width: var(--bracket-arm);
+    height: var(--bracket-arm);
+    border: 0 solid var(--bracket-color);
+}
+
+#lockBrackets .top-left {
+    left: 0;
+    top: 0;
+    border-top-width: var(--bracket-line);
+    border-left-width: var(--bracket-line);
+}
+
+#lockBrackets .top-right {
+    right: 0;
+    top: 0;
+    border-top-width: var(--bracket-line);
+    border-right-width: var(--bracket-line);
+}
+
+#lockBrackets .bottom-left {
+    left: 0;
+    bottom: 0;
+    border-bottom-width: var(--bracket-line);
+    border-left-width: var(--bracket-line);
+}
+
+#lockBrackets .bottom-right {
+    right: 0;
+    bottom: 0;
+    border-bottom-width: var(--bracket-line);
+    border-right-width: var(--bracket-line);
+}
+
+#lockBrackets .bracket-label {
+    position: absolute;
+    left: 100%;
+    bottom: 100%;
+    margin: 0 0 4px 4px;
+    color: var(--bracket-color);
+    font-family: Minecraft, system-ui, sans-serif;
+    font-size: 0.85em;
+    white-space: nowrap;
+}
+
+#lockBrackets .bracket-readout {
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--bracket-color);
+    font-family: Minecraft, system-ui, sans-serif;
+    font-size: 0.75em;
+    white-space: nowrap;
+}
+
+#lockBrackets .bracket-progress {
+    display: block;
+    width: 72px;
+    height: 4px;
+    border: 1px solid var(--bracket-color);
+    overflow: hidden;
+}
+
+#lockBrackets .bracket-progress-fill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bracket-color);
+    transform-origin: left center;
+    transform: scaleX(0);
+}
+
+#lockBrackets[data-state="searching"] {
+    opacity: 1;
+    transition: none;
+}
+
+#lockBrackets[data-state="searching"] .bracket {
+    animation: bracket-scan 0.45s steps(2, jump-none) infinite alternate;
+}
+
+@keyframes bracket-scan {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0.35;
+    }
+}
+
+#lockBrackets[data-state="closing"] {
+    opacity: 1;
+    transition: none;
+}
+
+#lockBrackets[data-state="locked"] {
+    --bracket-color: #ff4d4d;
+    opacity: 1;
+    transition: none;
+}
+
+#lockBrackets[data-state="fading"] {
+    --bracket-color: #ff4d4d;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+}
+
+#lockBrackets[data-state="hidden"] {
+    opacity: 0;
+    transition: none;
+}
+
+.scramble-flow {
+    display: block;
+}
+
+.scramble-char {
+    position: relative;
+}
+
+.scramble-char.scrambled {
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+}
+
+.scramble-char.scrambled::after {
+    content: attr(data-glyph);
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    text-align: center;
+    line-height: inherit;
+    -webkit-text-fill-color: currentColor;
+    white-space: nowrap;
+    pointer-events: none;
+}

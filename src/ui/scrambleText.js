@@ -6,6 +6,7 @@ const DIGIT_GLYPHS = ['⍑', 'ᓵ', 'ꖌ', '⊣', '∷', 'ᒲ', 'ᑑ', '⍊', '�
 const ORDER_RANDOMNESS = 0.4;
 const CHAR_CLASS = 'scramble-char';
 const SCRAMBLED_CLASS = 'scrambled';
+const FLOW_CLASS = 'scramble-flow';
 
 /**
  * Zamienia jeden znak na jego odpowiednik w piśmie ze stołu do zaklinania (Standard Galactic Alphabet).
@@ -92,6 +93,30 @@ function wrapTextNode(node) {
 }
 
 /**
+ * Czy element układa dzieci jako osobne elementy flex/grid (wtedy każdy dodany span byłby osobnym elementem rzędu).
+ * @param {HTMLElement} element
+ * @returns {boolean}
+ */
+function isFlexOrGrid(element) {
+    const display = element.ownerDocument.defaultView.getComputedStyle(element).display;
+    return display.includes('flex') || display.includes('grid');
+}
+
+/**
+ * Wkłada całą zawartość kontenera flex/grid do jednego blokowego spana. Odtwarza to anonimowy blok,
+ * który przeglądarka sama tworzy wokół ciągu "tekst, <br>, tekst", więc <br> dalej łamie linie.
+ * @param {HTMLElement} parent - kontener flex/grid z tekstem
+ * @returns {HTMLSpanElement} wstawiony span (do późniejszego rozpakowania)
+ */
+function wrapFlowContent(parent) {
+    const flow = parent.ownerDocument.createElement('span');
+    flow.className = FLOW_CLASS;
+    while (parent.firstChild) flow.append(parent.firstChild);
+    parent.append(flow);
+    return flow;
+}
+
+/**
  * Tworzy animację "odszyfrowania" tekstu w podanych elementach bez przesuwania układu strony:
  * oryginalne litery zostają na miejscu (niewidoczne), a znaki galaktyczne są rysowane nad nimi.
  * Nowe wywołanie przerywa poprzednie i od razu przywraca jego tekst.
@@ -111,6 +136,9 @@ export function createScrambler({
         cancelFrame(running.frameId);
         for (const { wrapper, node } of running.runs) {
             if (wrapper.isConnected) wrapper.replaceWith(node);
+        }
+        for (const flow of running.flows) {
+            if (flow.isConnected) flow.replaceWith(...flow.childNodes);
         }
         running = null;
     }
@@ -135,17 +163,20 @@ export function createScrambler({
          */
         reveal(elements, durationSeconds) {
             finish();
-            const runs = collectTextNodes(elements).map((node) => ({ node, ...wrapTextNode(node) }));
+            const nodes = collectTextNodes(elements);
+            const flexParents = [...new Set(nodes.map((node) => node.parentElement))].filter(isFlexOrGrid);
+            const flows = flexParents.map(wrapFlowContent);
+            const runs = nodes.map((node) => ({ node, ...wrapTextNode(node) }));
             const chars = runs.flatMap((run) => run.chars);
             if (chars.length === 0) {
-                running = { runs, frameId: null };
+                running = { runs, flows, frameId: null };
                 finish();
                 return;
             }
             const order = revealOrder(chars.length);
             const start = now();
             let revealed = 0;
-            running = { runs, frameId: null };
+            running = { runs, flows, frameId: null };
 
             const tick = () => {
                 const progress = durationSeconds > 0 ? (now() - start) / (durationSeconds * 1000) : 1;

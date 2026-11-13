@@ -188,6 +188,11 @@ export function createCameraRig({ camera, controls, config, onChange = () => {} 
             return mode;
         },
 
+        /** @returns {boolean} czy trwa lot, po którym kamera sama się przybliży (przejście z focusu na focus) */
+        get refocusing() {
+            return mode === 'travel' && refocusOnArrival;
+        },
+
         /** @returns {number} postęp bieżącej fazy w zakresie 0..1 (np. jak daleko jest namierzanie) */
         get phaseProgress() {
             return progress;

@@ -1,0 +1,120 @@
+#contactDialog {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -30%);
+    width: 80%;
+    max-width: 110vh;
+    height: 80%;
+    max-height: 110vh;
+    background-color: rgba(14, 14, 16, 0.96);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7), inset 0 1px 0 var(--panel-highlight);
+    border: 1px solid var(--panel-border);
+    z-index: 20;
+    justify-content: center;
+}
+
+#svgCloseContact {
+    height: 30px;
+    width: 30px;
+    position: absolute;
+    bottom: 3%;
+    z-index: 7;
+}
+
+#contactText {
+    color: var(--text-muted);
+    font-family: Minecraft, system-ui, sans-serif;
+    text-align: center;
+    font-size: 1.2em;
+    line-height: 140%;
+    text-shadow: 1px 1px 2px var(--accent-deep);
+}
+
+#contactChoice {
+    display: grid;
+    height: 60%;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 0 24px;
+    text-align: center;
+    align-items: stretch;
+    margin-top: 7%;
+}
+
+#contactTextChoice1,
+#contactTextChoice2 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+    padding: 22px 20px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid var(--panel-border);
+    box-shadow: inset 0 1px 0 var(--panel-highlight), var(--panel-shadow);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+#contactTextChoice1:hover,
+#contactTextChoice2:hover {
+    border-color: rgba(162, 89, 255, 0.55);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), var(--accent-glow);
+    transform: translateY(-2px);
+}
+
+#nick {
+    color: var(--accent);
+    text-shadow: 0 0 10px rgba(162, 89, 255, 0.45);
+}
+
+a#nick {
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(162, 89, 255, 0.5);
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+a#nick:hover {
+    color: #c29bff;
+    border-bottom-style: solid;
+    border-bottom-color: #c29bff;
+}
+
+#avatar {
+    display: block;
+    width: 30%;
+    max-width: 250px;
+    max-height: 250px;
+    height: auto;
+    overflow: hidden;
+    margin: -15% auto 0 0;
+    transform: scaleX(-1)
+}
+
+@media (max-width: 1800px) {
+    #contactDialog {
+        height: 80%;
+        width: 110vw;
+        transform: translate(-50%, -30%);
+    }
+
+    #avatar {
+        margin: -18% auto 0 0;
+    }
+}
+
+@media (max-width: 1000px) {
+    #contactDialog {
+        display: none;
+        height: 40vh;
+        width: 95vw;
+        margin-bottom: 10vh;
+    }
+
+    #svgCloseContact {
+        scale: 2;
+    }
+}

@@ -1,0 +1,113 @@
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(3px);
+}
+
+dialog[open] {
+    animation: dialog-in 0.22s ease-out;
+}
+
+dialog[open]::backdrop {
+    animation: backdrop-in 0.22s ease-out;
+}
+
+dialog.closing {
+    animation: dialog-out 0.18s ease-in forwards;
+}
+
+dialog.closing::backdrop {
+    animation: backdrop-out 0.18s ease-in forwards;
+}
+
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        scale: 0.97;
+    }
+
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@keyframes dialog-out {
+    from {
+        opacity: 1;
+        scale: 1;
+    }
+
+    to {
+        opacity: 0;
+        scale: 0.97;
+    }
+}
+
+@keyframes backdrop-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes backdrop-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+#svgClose,
+#svgCloseContact,
+#svgCloseGallery,
+#svgRight2,
+#svgLeft2 {
+    box-sizing: content-box;
+    padding: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--panel-border);
+    box-shadow: inset 0 1px 0 var(--panel-highlight);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+#svgClose:hover,
+#svgCloseContact:hover,
+#svgCloseGallery:hover,
+#svgRight2:hover,
+#svgLeft2:hover {
+    background: var(--accent-soft);
+    border-color: rgba(162, 89, 255, 0.6);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), var(--accent-glow);
+}
+
+#svgRight2 path,
+#svgLeft2 path {
+    fill: #d8d8d8;
+}
+
+#naviHolders,
+#naviHoldersDialogImg,
+#naviHoldersMaster,
+#overdriveNavi {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    box-shadow: inset 0 1px 0 var(--panel-highlight), var(--panel-shadow);
+    backdrop-filter: blur(6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    dialog[open],
+    dialog[open]::backdrop,
+    dialog.closing,
+    dialog.closing::backdrop {
+        animation: none;
+    }
+}

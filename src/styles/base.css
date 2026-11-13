@@ -1,0 +1,51 @@
+@font-face {
+    font-family: Minecraft;
+    src: url('/textures/font/F77MinecraftRegular-0VYv.woff2') format('woff2');
+    font-display: swap;
+}
+
+:root {
+    --panel-bg: rgba(20, 20, 20, 0.85);
+    --panel-border: #404c5d;
+    --panel-highlight: rgba(255, 255, 255, 0.06);
+    --panel-shadow: 0 2px 8px #000;
+    --text-muted: #a1a1a1;
+    --accent: #a259ff;
+    --accent-deep: #8332ed;
+    --accent-soft: rgba(162, 89, 255, 0.28);
+    --accent-glow: 0 0 12px rgba(162, 89, 255, 0.55);
+}
+
+body {
+    margin: 0;
+    font-family: Minecraft;
+    color: white;
+    background-color: black;
+    user-select: none;
+}
+
+#note {
+    opacity: 10%;
+    font-size: 12px;
+    left: 41vw;
+    position: absolute;
+}
+
+#container3D canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+#container3D {
+    z-index: -1;
+}
+
+button:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}

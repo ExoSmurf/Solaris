@@ -3,20 +3,20 @@
 
 <head>
 	<meta charset="UTF-8" />
-	<link rel="stylesheet" href="/src/main.css" />
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
-		rel="stylesheet">
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="Solaris – interactive 3D solar system portfolio. Fly between planets to explore projects, galleries and contact info." />
+	<link rel="preload" href="/textures/loading-poster.webp" as="image" fetchpriority="high">
+	<link rel="preload" href="/textures/font/F77MinecraftRegular-0VYv.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="stylesheet" href="/src/styles/main.css" />
 	<link rel="icon" href="textures/EarthNull.ico" type="image/x-icon">
 	<title>Solaris - Portfolio Exploration</title>
 </head>
 
 <body>
 	<div id="loadingPlane">
-		<video src="textures/0001-0200.mp4" muted="1" id="loading"></video>
-		<img src="textures/loading.png" alt="" id="loadingText">
-		<img src="textures/allLoaded.png" alt="" id="allLoaded">
+		<video src="textures/0001-0200.mp4" poster="textures/loading-poster.webp" muted playsinline preload="auto" id="loading" aria-hidden="true"></video>
+		<img src="textures/loading.webp" alt="" id="loadingText" width="333" height="62" fetchpriority="high">
+		<img src="textures/allLoaded.webp" alt="" id="allLoaded" width="469" height="62" fetchpriority="low" decoding="async">
 	</div>
 	<div id="main">
 
@@ -79,7 +79,7 @@
 	<div id="container3D">
 	</div>
 	<div class="container" id="container">
-		<img src="textures/arrow.png" alt="" id="arrow" draggable="false">
+		<img src="textures/arrow.webp" alt="" id="arrow" draggable="false" loading="lazy" decoding="async">
 	</div>
 
 	<div id="inspekcja">
@@ -101,7 +101,7 @@
 			<img src="" id="dialogImg" draggable="false" loading="lazy">
 			<div class="row" id="row">
 				<div id="arrowSelect">
-					<img src="textures/arrow.png" id="arrowSelectArrow" draggable="false">
+					<img src="textures/arrow.webp" id="arrowSelectArrow" draggable="false" loading="lazy" decoding="async">
 				</div>
 			</div>
 
@@ -193,7 +193,7 @@
 					<br><br>3. Now all that's left is to drop the info about terrain in need, or question.
 				</p>
 			</div>
-			<img src="textures/images/avatar/ExoRendersmall.webp" alt="Avatar" id="avatar" draggable="false">
+			<img src="textures/images/avatar/ExoRendersmall.webp" alt="Avatar" id="avatar" draggable="false" loading="lazy" fetchpriority="low" decoding="async">
 		</div>
 		<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
 			onclick="dialCloseContact()" class="svgArrow" id="svgCloseContact">
@@ -243,108 +243,3 @@
 	</dialog>
 
 	<script src="/src/main.js" type="module"></script>
-	<script>
-		const dialog = document.getElementById("dialogee");
-		const arrow = document.getElementById("arrowSelectArrow");
-		let slideNo = 1
-
-		arrow.style.display = "none";
-
-		// showSlides(slideNo)
-		window.nextImg = function (n) {
-			showSlides(slideNo += n);
-		};
-		window.prevImg = function (n) {
-			showSlides(slideNo -= n);
-		};
-		window.currentSlide = function (n) {
-			showSlides(slideNo = n);
-		};
-
-		function showSlides(n) {
-			let i, slides = document.getElementsByClassName("slides");
-			slideNo = n
-			if (n > slides.length) {
-				slideNo = 1;
-			}
-			if (n < 1) {
-				slideNo = slides.length;
-			}
-			for (i = 0; i < slides.length; i++) {
-				slides[i].classList.remove("wyswietlanie");
-			}
-			slides[slideNo - 1].classList.add("wyswietlanie");
-
-			const lowResSrc = slides[slideNo - 1].children[0].src;
-			dialog.children[0].src = lowResSrc;
-
-			const highRes = new Image();
-			highRes.src = lowResSrc.replace(".webp", "2.webp");
-			highRes.onload = () => {
-				dialog.children[0].src = highRes.src;
-			};
-
-			const row = document.getElementById("row");
-			const columns = row.querySelectorAll(".column.removable");
-			const sidebarColumn = columns[slideNo - 1];
-
-
-			if (dialog.children[0]) {
-
-				// dialog.children[0].style.transform = "translate(-50%, -50%) scale(1)";
-				dialog.children[0].dialogZoom = 1;
-				dialog.children[0].panX = 0;
-				dialog.children[0].panY = 0;
-
-			}
-			if (sidebarColumn && arrow) {
-				arrow.style.display = "block";
-
-				const rowRect = row.getBoundingClientRect();
-				const colRect = sidebarColumn.getBoundingClientRect();
-
-				const center = (colRect.top + colRect.height / 2) - rowRect.top;
-
-				arrow.style.top = `${center - arrow.offsetHeight / 2}px`;
-			}
-		}
-		window.dialClose = function () {
-			arrow.style.display = "none";
-			arrow.style.top = "50%";
-			dialog.close();
-			dialog.style.display = "none"
-			dialogZoom = 1;
-			panX = 0;
-			panY = 0;
-			const dialogImg = document.getElementById("dialogImg");
-			if (dialogImg) dialogImg.src = "";
-		};
-		window.dialCloseContact = function () {
-			const dialogContact = document.getElementById("contactDialog");
-			dialogContact.close();
-			dialogContact.style.display = "none";
-		};
-		window.dialCloseGallery = function () {
-			const dialogGallery = document.getElementById("masterGalleryDialog");
-			const naviHolder = document.getElementById("naviHoldersMaster");
-			dialogGallery.close();
-			dialogGallery.style.display = "none";
-			naviHolder.style.display = "none";
-			const galleryGrid = dialogGallery.querySelector("#masterGalleryGrid");
-			if (galleryGrid) {
-				galleryGrid.innerHTML = "";
-			}
-		};
-		window.dialCloseGalleryImg = function () {
-			const dialogGalleryImg = document.getElementById("galleryImageDialog");
-			dialogGalleryImg.close();
-			dialogGalleryImg.style.display = "none";
-			const img = dialogGalleryImg.querySelector("#galleryImageDialogImg");
-			if (img) {
-				img.src = "";
-			}
-			dialogZoom = 1;
-			panX = 0;
-			panY = 0;
-		};
-	</script>

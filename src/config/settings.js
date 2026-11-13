@@ -42,8 +42,11 @@ export const light = {
         power: 120,
         distance: 100,
         shadow: {
-            mapSize: 100,
-            bias: -0.01,
+            mapSize: 1024,
+            bias: -0.002,
+            normalBias: 0.02,
+            radius: 3,
+            near: 0.5,
         },
     },
 };
@@ -54,7 +57,7 @@ export const render = {
     bloom: {
         strength: 1,
         radius: 1,
-        threshold: 0.2,
+        threshold: 0.4,
     },
 };
 
@@ -68,6 +71,8 @@ export const hud = {
         padding: 1.15,
         minSize: 28,
         startScale: 1,
+        searchClosing: 0.35,
+        searchJitterRate: 6,
     },
     delta: {
         smoothing: 0.85,
@@ -75,9 +80,18 @@ export const hud = {
     scramble: {
         duration: 0.8,
     },
+    fit: {
+        minSize: 8,
+        padding: 6,
+    },
+};
+
+export const loading = {
+    allLoadedHold: 0.8,
 };
 
 export const paths = {
+    cardTextures: ['/textures/name.webp', '/textures/diam.webp', '/textures/ress.webp', '/textures/bulk.webp'],
     images: '/textures/images/',
     previews: '/textures/images/previews/',
     defaultPreview: 'default',

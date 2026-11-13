@@ -2,23 +2,33 @@ import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { systems } from "./config/systems.js";
 import { bodyInfo } from "./config/info.js";
-import { paths, camera as cameraConfig, light as lightConfig, render as renderConfig, motion as motionConfig, hud as hudConfig } from "./config/settings.js";
+import { paths, camera as cameraConfig, light as lightConfig, render as renderConfig, motion as motionConfig, hud as hudConfig, loading as loadingConfig } from "./config/settings.js";
 import { loadSolarSystem } from "./world/solarSystem.js";
 import { framesBetween } from "./motion/motion.js";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
-import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass';
 import { createCameraRig, nextPlanetIndex } from './camera/cameraRig.js';
 import { cameraStatus, createCameraStatus } from './ui/cameraStatus.js';
-import { bracketFrame, createLockBrackets, formatCoordinates, formatDelta, lockBracketsState, movementSpeed, screenRadius, smoothValue } from './ui/lockBrackets.js';
+import {
+    bracketFrame,
+    createLockBrackets,
+    formatCoordinates,
+    formatDelta,
+    lockBracketsState,
+    movementSpeed,
+    screenRadius,
+    searchCoordinates,
+    searchSpread,
+    smoothValue,
+} from './ui/lockBrackets.js';
+import { fitTextToWidth } from './ui/fitText.js';
+import { createSlideArrow } from './ui/slideArrow.js';
+import { closeDialog, isDialogVisible, openDialog, preventInstantEscape } from './ui/dialogs.js';
 import { createScrambler } from './ui/scrambleText.js';
 import { createImagePreloader, planetImageUrls } from './ui/preloadImages.js';
 
-
-// import './slides.js';
-
-const renderer = new THREE.WebGLRenderer({ antialias: true }); //tlo alpha na true zeby tlo widac bylo przed zaladowaniem
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -27,9 +37,7 @@ renderer.toneMappingExposure = renderConfig.exposure;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 renderer.shadowMap.enabled = true
-
-
-let mouseX, mouseY
+renderer.shadowMap.type = THREE.PCFShadowMap;
 
 let scene = new THREE.Scene;
 let camera = new THREE.PerspectiveCamera(
@@ -66,19 +74,6 @@ const bloomPass = new UnrealBloomPass(
     renderConfig.bloom.threshold
 )
 composer.addPass(bloomPass)
-
-const bloomComposer = new EffectComposer(renderer);
-bloomComposer.addPass(renderScene);
-bloomComposer.addPass(bloomPass);
-
-const outputPass = new OutputPass();
-bloomComposer.addPass(outputPass);
-
-let windowHalfX = window.innerWidth / 2;
-let windowHalfY = window.innerHeight / 2;
-
-document.addEventListener('mousemove', onDocumentMouseMove);
-
 
 function getStarfield({ numStars = 200 } = {}) {
     function randomSpherePoint() {
@@ -126,7 +121,6 @@ const starfield = getStarfield();
 starfield.name = "starfield";
 scene.add(starfield)
 
-
 let currentSolar = 1
 let planetySun = []
 let planetyBlackHole = []
@@ -141,6 +135,7 @@ async function loadSystem(solarNo) {
     else planetyBlackHole = system.bodies;
     activeSystem = system;
     cameraRig.setBodies(system.bodies);
+    await renderer.compileAsync(scene, camera);
     if (!renderLoopRunning) {
         renderLoopRunning = true;
         animate();
@@ -155,8 +150,6 @@ function systemReady() {
 let lastFrameTime = performance.now();
 
 document.getElementById("container3D").appendChild(renderer.domElement);
-// const axesHelper = new THREE.AxesHelper(100000);
-// scene.add(axesHelper)
 function light() {
     const { color, ambientIntensity, offsetFromCenter: d, point } = lightConfig;
     const offsets = [[0, d, 0], [0, -d, 0], [d, 0, 0], [-d, 0, 0], [0, 0, d], [0, 0, -d]];
@@ -164,8 +157,12 @@ function light() {
         const pointLight = new THREE.PointLight(color);
         pointLight.castShadow = true;
         pointLight.shadow.bias = point.shadow.bias;
+        pointLight.shadow.normalBias = point.shadow.normalBias;
+        pointLight.shadow.radius = point.shadow.radius;
         pointLight.shadow.mapSize.width = point.shadow.mapSize;
         pointLight.shadow.mapSize.height = point.shadow.mapSize;
+        pointLight.shadow.camera.near = point.shadow.near;
+        pointLight.shadow.camera.far = point.distance;
         pointLight.position.set(x, y, z);
         pointLight.distance = point.distance;
         pointLight.power = point.power;
@@ -199,6 +196,7 @@ const hudPreviousPosition = new THREE.Vector3();
 let hudPreviousTarget = null;
 let hudSpeed = 0;
 let lastSyncedMode = null;
+let hudClock = 0;
 const hudTargetPosition = new THREE.Vector3();
 const hudProjected = new THREE.Vector3();
 
@@ -217,16 +215,29 @@ function updateHud(dt) {
 
     statusDisplay.show(cameraStatus(cameraRig.mode, cameraRig.targetIndex));
 
-    const bracketsState = lockBracketsState(cameraRig.mode, cameraRig.phaseProgress);
-    const frame = bracketsState.visibility === 'hidden' ? null : bracketFrameFor(body, bracketsState.closing);
-    bracketsDisplay.show(bracketsState, frame, {
-        coordinates: formatCoordinates(hudTargetPosition),
+    const bracketsState = lockBracketsState(
+        cameraRig.mode,
+        cameraRig.phaseProgress,
+        cameraRig.refocusing,
+        hudConfig.brackets.searchClosing,
+    );
+    hudClock += dt;
+    const placement = bracketsState.visibility === 'hidden' ? null : bracketPlacement(body, bracketsState.closing);
+    bracketsDisplay.show(bracketsState, placement?.frame ?? null, {
+        coordinates: formatCoordinates(bracketCoordinates(bracketsState, body, placement)),
         delta: formatDelta(hudSpeed),
         progress: bracketsState.closing,
     });
 }
 
-function bracketFrameFor(body, closing) {
+function bracketCoordinates(bracketsState, body, placement) {
+    if (bracketsState.visibility !== 'searching' || !placement) return hudTargetPosition;
+    const spread = searchSpread(placement.frame.size, body.radius, placement.pixelRadius);
+    const tick = Math.floor(hudClock * hudConfig.brackets.searchJitterRate);
+    return searchCoordinates(hudTargetPosition, spread, tick);
+}
+
+function bracketPlacement(body, closing) {
     hudProjected.copy(hudTargetPosition).project(camera);
     if (hudProjected.z < -1 || hudProjected.z > 1) return null;
     const viewport = { width: window.innerWidth, height: window.innerHeight };
@@ -235,13 +246,33 @@ function bracketFrameFor(body, closing) {
         y: ((1 - hudProjected.y) / 2) * viewport.height,
     };
     const distance = camera.position.distanceTo(hudTargetPosition);
-    const radius = screenRadius(body.radius, distance, camera.fov, viewport.height);
-    return bracketFrame(center, radius, viewport, closing, hudConfig.brackets);
+    const pixelRadius = screenRadius(body.radius, distance, camera.fov, viewport.height);
+    return { frame: bracketFrame(center, pixelRadius, viewport, closing, hudConfig.brackets), pixelRadius };
 }
 
 function preloadTargetImages() {
+    imagePreloader.preload(paths.cardTextures);
     const planet = planetsInfo[planetInfoSize()];
     if (planet) imagePreloader.preload(planetImageUrls(planet.images, paths.images));
+}
+
+const FITTED_INFO_IDS = [
+    "name",
+    "id",
+    "informacjeDiam",
+    "informacjeMass",
+    "informacjeRess",
+    "informacjeOrbitalPeriod",
+    "informacjeTemperature",
+    "informacjeAxialTilt",
+];
+
+function fitInfoText() {
+    for (const id of FITTED_INFO_IDS) {
+        const element = document.getElementById(id);
+        const pill = element.closest("#podZdjeciem > div");
+        if (pill) fitTextToWidth(element, pill, hudConfig.fit);
+    }
 }
 
 function infoTextElements() {
@@ -289,6 +320,7 @@ function syncCameraUi() {
     if (mode === 'focused') {
         if (lastSyncedMode !== 'focused') {
             showInfo();
+            fitInfoText();
             scrambler.reveal(infoTextElements(), hudConfig.scramble.duration);
         }
     } else {
@@ -373,12 +405,10 @@ function info() {
             createImg.src = paths.images + planet.images[i] + ".webp"
 
             createDiv.classList.add("slides", "removable")
-            // createDiv.id = "removable"
             if (i == 0) {
                 createDiv.classList.add("wyswietlanie")
             }
             createImg.classList.add("zdjecia", "removable")
-            // createImg.id = "removable"
             createImg.draggable = false
             createImg.loading = "lazy"
 
@@ -391,10 +421,8 @@ function info() {
             createImgDialog.src = paths.images + planet.images[i] + ".webp"
 
             createDivDialog.classList.add("column", "removable")
-            // createDivDialog.id = "removable"
 
             createImgDialog.classList.add("demo", "cursor", "slide" + i, "removable")
-            // createImgDialog.id = "removable"
             createImgDialog.draggable = false
             createImgDialog.loading = "lazy"
             createImgDialog.setAttribute("onclick", "showSlides(" + (i + 1) + ")")
@@ -413,21 +441,13 @@ function info() {
 
             slide[i].addEventListener('click', () => {
                 openDialogWithHistory("dialogee");
-                dialog.children[0].src = slide[i].children[0].src;
-                console.log("Setting dialog image src:", slide[i].children[0].src);
-                const highRes = new Image();
-                highRes.src = slide[i].children[0].src.replace(".webp", "2.webp");
-                highRes.onload = () => {
-                    dialog.children[0].src = highRes.src;
-                };
+                showSlides(i + 1);
             })
             setupDialogImgZoomPan(dialog.children[0]);
         }
     }
 }
 
-
-//img musi byc na srodku by default
 function setupDialogImgZoomPan(dialogImg) {
     dialogImg.dialogZoom = 1;
     dialogImg.panX = 0;
@@ -539,18 +559,56 @@ function setupDialogImgZoomPan(dialogImg) {
 
     updateDialogImgTransform();
 }
+const slideArrow = createSlideArrow(
+    document.getElementById("arrowSelectArrow"),
+    document.getElementById("row"),
+    ".column.removable",
+);
+let slideNo = 1;
+document.getElementById("dialogee").addEventListener("close", () => slideArrow.hide());
+
+function showSlides(n) {
+    const slides = document.getElementsByClassName("slides");
+    if (slides.length === 0) return;
+    slideNo = n > slides.length ? 1 : n < 1 ? slides.length : n;
+    const shown = slideNo;
+
+    for (const slide of slides) slide.classList.remove("wyswietlanie");
+    const current = slides[slideNo - 1];
+    current.classList.add("wyswietlanie");
+
+    const dialogImg = document.getElementById("dialogImg");
+    if (dialogImg) {
+        const lowResSrc = current.children[0].src;
+        dialogImg.src = lowResSrc;
+        dialogImg.dialogZoom = 1;
+        dialogImg.panX = 0;
+        dialogImg.panY = 0;
+        const highRes = new Image();
+        highRes.src = lowResSrc.replace(".webp", "2.webp");
+        highRes.onload = () => {
+            if (slideNo === shown) dialogImg.src = highRes.src;
+        };
+    }
+
+    slideArrow.show(slideNo - 1);
+}
+
+window.showSlides = showSlides;
+window.currentSlide = showSlides;
+window.nextImg = (n) => showSlides(slideNo + n);
+window.prevImg = (n) => showSlides(slideNo - n);
+
 function removeDivs() {
     const toRemove = Array.from(document.getElementsByClassName('removable'));
     for (let i = 0; i < toRemove.length; i++) {
         toRemove[i].remove()
     }
-    if (document.getElementById("arrowSelectArrow")) document.getElementById("arrowSelectArrow").style.display = "none";
-    document.getElementById("arrowSelectArrow").style.top = "50%";
+    slideArrow.hide();
+    slideNo = 1;
     const dialogImg = document.getElementById("dialogImg");
     if (dialogImg) dialogImg.src = "";
 }
-
-
 
 function createPlanetBar() {
     const bar = document.getElementById("planetBar");
@@ -579,7 +637,7 @@ function createPlanetBar() {
 
         const img = document.createElement("img");
         img.src = paths.previews + (planet.preview ?? paths.defaultPreview) + ".webp";
-        img.alt = planet.name || "Planet";
+        img.alt = "";
         img.style.marginRight = "8px";
         img.style.alignSelf = "center";
         img.draggable = false;
@@ -641,7 +699,6 @@ masterGallery.addEventListener("click", () => {
     const galleryImageDialogImg = document.getElementById("galleryImageDialogImg");
     const naviHolder = document.getElementById("naviHoldersMaster");
 
-
     closeAllVisibleDialogs();
     openDialogWithHistory("masterGalleryDialog");
     naviHolder.style.display = "flex";
@@ -652,17 +709,8 @@ masterGallery.addEventListener("click", () => {
         const img = document.createElement("img");
         img.src = imgPath;
         img.alt = `Gallery image ${idx + 1}`;
-        img.style.width = "100%";
-        img.style.height = "auto";
-        img.style.cursor = "pointer";
-        img.style.borderRadius = "8px";
-        img.style.boxShadow = "0 2px 8px #000";
         img.loading = "lazy";
         img.draggable = false
-        img.style.userSelect = "none";
-        img.style.webkitUserSelect = "none";
-        img.style.mozUserSelect = "none";
-        img.style.msUserSelect = "none";
         img.classList.add("gallery-image");
 
         img.addEventListener("click", function () {
@@ -685,11 +733,9 @@ let isHandlingPopstate = false;
 function closeAllVisibleDialogs(idsToExclude = [], fromPopstate = false) {
     let anyClosed = false;
     document.querySelectorAll('dialog').forEach(dialog => {
-        if (getComputedStyle(dialog).display === "flex" && !idsToExclude.includes(dialog.id)) {
-            dialog.style.display = "none";
-            dialog.close();
+        if (isDialogVisible(dialog) && !idsToExclude.includes(dialog.id)) {
+            closeDialog(dialog);
             anyClosed = true;
-            console.log(`Closing dialog: ${dialog.id}`);
         }
     });
     if (anyClosed && window.history.state && window.history.state.dialogOpen && !fromPopstate) {
@@ -709,17 +755,37 @@ window.addEventListener("popstate", function () {
         dialog => getComputedStyle(dialog).display === "flex"
     );
     if (anyOpen) {
-        closeAllVisibleDialogs([], true); // Pass true to prevent history.back()
+        closeAllVisibleDialogs([], true);
     }
     isHandlingPopstate = false;
 });
 
 function openDialogWithHistory(dialogId) {
-    const dialog = document.getElementById(dialogId);
-    dialog.showModal();
-    dialog.style.display = "flex";
+    openDialog(document.getElementById(dialogId));
     history.pushState({ dialogOpen: true, dialogId }, "");
 }
+
+const closeDialogById = (id) => closeDialog(document.getElementById(id));
+window.dialClose = () => closeDialogById("dialogee");
+window.dialCloseContact = () => closeDialogById("contactDialog");
+window.dialCloseGallery = () => closeDialogById("masterGalleryDialog");
+window.dialCloseGalleryImg = () => closeDialogById("galleryImageDialog");
+
+document.querySelectorAll("dialog").forEach(preventInstantEscape);
+
+document.getElementById("dialogee").addEventListener("close", () => {
+    const dialogImg = document.getElementById("dialogImg");
+    if (dialogImg) dialogImg.src = "";
+});
+
+document.getElementById("galleryImageDialog").addEventListener("close", () => {
+    document.getElementById("galleryImageDialogImg").src = "";
+});
+
+document.getElementById("masterGalleryDialog").addEventListener("close", () => {
+    document.getElementById("naviHoldersMaster").style.display = "none";
+    document.getElementById("masterGalleryGrid").innerHTML = "";
+});
 
 const INFO_PANEL_IDS = ["inspekcja", "inspekcjaDane", "container"];
 
@@ -733,7 +799,6 @@ function hideInfo() {
 hideInfo()
 
 let loadingCompleted = false
-let val = 100
 const vid = document.getElementById("loading");
 const plate = document.getElementById("loadingPlane");
 const loadingText = document.getElementById("loadingText");
@@ -763,8 +828,7 @@ vid.addEventListener('ended', () => {
             const firstBtn = document.getElementById("planetBar").querySelector(".planetBar-btn");
             firstBtn.classList.add("active");
             document.getElementById("planetBar").style.display = "flex";
-            if (document.getElementById("arrowSelectArrow")) document.getElementById("arrowSelectArrow").style.display = "none";
-            document.getElementById("arrowSelectArrow").style.top = "50%";
+            slideArrow.hide();
             document.getElementById("main").classList.add("slideIn")
         }
     }
@@ -773,7 +837,7 @@ vid.addEventListener('ended', () => {
     }
 })
 function opacityFalldown() {
-    if (vid.style.zIndex == -10) return // sprawdzanie czy opacityFall jest aktywne
+    if (vid.style.zIndex == -10) return
     vid.style.opacity = opacityVal + "%"
     plate.style.opacity = opacityVal + "%"
     loadingText.style.display = "none"
@@ -789,49 +853,6 @@ function opacityFalldown() {
     }
 }
 let rumpup = false
-// function nextSolar() {
-//     oneTimeTicket = true
-//     if (vid.style.opacity < 1.5) {
-//         rumpup = true
-//         document.getElementById("planetBar").style.display = "none";
-//         solarCheck = 1;
-//         loadingCompleted = false
-//         playVideo();
-//         startRumpup();
-//     }
-//     if (vid.style.opacity >= 1.5) {
-//         cameraMovePositive(userCameraMoveSpeed)
-//         checkPlanetaryState().forEach(planeta => {
-//             if (planeta.blok.kostka) unloadModels(planeta.blok.kostka);
-
-//             if (planeta.blokObj.kostka) unloadModels(planeta.blokObj.kostka);
-//         });
-//         if (currentSolar == 1) {
-//             currentSolar = 2;
-//             planetLoadedCount = 0;
-//             planetBlackHoleLoadedCount = 0;
-//             removeDivs();
-//             delPlanetBar();
-//             startFalldown();
-//             loadBlackHoleSolar();
-//             console.log(scene.children.length);
-//             console.log("Loading Black Hole Solar");
-
-//         }
-//         else if (currentSolar == 2) {
-//             currentSolar = 1;
-//             planetLoadedCount = 0;
-//             planetBlackHoleLoadedCount = 0;
-//             troll = 1
-//             removeDivs()
-//             delPlanetBar();
-//             startFalldown();
-//             loadSunSolar();
-//             console.log(scene.children.length);
-//             console.log("Loading Sun Solar");
-//         }
-//     }
-// }
 
 let isSwitchingSolar = false;
 function nextSolar() {
@@ -839,13 +860,10 @@ function nextSolar() {
     isSwitchingSolar = true;
     startTransitionOut(() => {
         unloadCurrentSolar(() => {
-            document.getElementById("arrowSelectArrow").style.display = "none";
-            document.getElementById("arrowSelectArrow").style.top = "50%";
+            slideArrow.hide();
             loadNextSolar(() => {
                 startTransitionIn();
                 isSwitchingSolar = false;
-                // const images = document.getElementById("dialogee").querySelectorAll("img");
-                // images.forEach(img => img.remove())
                 updatePlanetBarActive();
             });
         });
@@ -890,9 +908,6 @@ async function loadNextSolar(callback) {
 function startTransitionIn() {
     opacityFall = true;
     startFalldown();
-    // scene.traverse(obj => {
-    //     if (obj.isLight) obj.castShadow = false;
-    // });
     info();
 }
 
@@ -921,15 +936,27 @@ function opacityRumpup() {
 let falldownInterval = null;
 let rumpupInterval = null;
 
+let falldownHoldTimer = null;
+
+function showAllLoaded() {
+    loadingText.style.display = "none";
+    allLoaded.style.display = "block";
+    allLoaded.style.opacity = "100%";
+}
+
 function startFalldown() {
     if (falldownInterval) clearInterval(falldownInterval);
-    falldownInterval = setInterval(() => {
-        if (!opacityFall) {
-            clearInterval(falldownInterval);
-            return;
-        }
-        opacityFalldown();
-    }, 1); // ~60fps
+    clearTimeout(falldownHoldTimer);
+    showAllLoaded();
+    falldownHoldTimer = setTimeout(() => {
+        falldownInterval = setInterval(() => {
+            if (!opacityFall) {
+                clearInterval(falldownInterval);
+                return;
+            }
+            opacityFalldown();
+        }, 1);
+    }, loadingConfig.allLoadedHold * 1000);
 }
 
 function startRumpup() {
@@ -976,13 +1003,6 @@ function render() {
         renderer.render(scene, camera);
     }
 }
-function onDocumentMouseMove(event) {
-
-    mouseX = (event.clientX - windowHalfX) / 200;
-    mouseY = (event.clientY - windowHalfY) / 90;
-
-}
-
 window.addEventListener("resize", function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -1001,7 +1021,9 @@ if (new URLSearchParams(location.search).has('test')) {
         get loaded() {
             return systemReady();
         },
+        scene,
+        camera,
+        renderer,
     };
 }
-
 

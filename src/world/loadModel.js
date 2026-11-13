@@ -16,14 +16,15 @@ export async function loadModel(url, loader = gltfLoader) {
 /**
  * Ustawia cienie na wszystkich meshach modelu i wyłącza anizotropię tekstur.
  * @param {THREE.Object3D} root - model, po którym przechodzimy (traverse)
- * @param {'cast'|'both'} mode - 'cast': tylko rzuca cień; 'both': rzuca i przyjmuje
+ * @param {'cast'|'both'|'none'} mode - 'cast': tylko rzuca cień; 'both': rzuca i przyjmuje;
+ *   'none': ani nie rzuca, ani nie przyjmuje (np. ciało ze światłem w środku, które inaczej by je zasłoniło)
  * @returns {void}
  */
 export function prepareShadows(root, mode) {
     root.traverse((node) => {
         if (!node.isMesh) return;
-        node.castShadow = true;
-        node.receiveShadow = mode !== 'cast';
+        node.castShadow = mode !== 'none';
+        node.receiveShadow = mode === 'both';
         if (node.material?.map) node.material.map.anisotropy = 0;
     });
 }

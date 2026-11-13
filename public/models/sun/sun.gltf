@@ -105,9 +105,9 @@
 	],
 	"images":[
 		{
-			"mimeType":"image/png",
+			"mimeType":"image/webp",
 			"name":"Image_0",
-			"uri":"Image_0.png"
+			"uri":"Image_0.webp"
 		}
 	],
 	"accessors":[

@@ -1,0 +1,328 @@
+#inspekcja {
+    display: none;
+    height: 500px;
+    width: 300px;
+    background-image: linear-gradient(rgb(122, 102, 106) 50%, rgb(172, 42, 68)100%);
+    top: 25%;
+    left: 25%;
+    position: absolute;
+    opacity: 95%;
+    z-index: 5;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+    box-shadow: inset 0 1px 0 var(--panel-highlight), 0 6px 24px rgba(0, 0, 0, 0.6);
+}
+
+#arrow {
+    position: absolute;
+    width: auto;
+    height: auto;
+    animation: rotate 15s linear infinite;
+    display: block;
+    user-select: none;
+}
+
+#container {
+    display: none;
+    position: absolute;
+    width: auto;
+    height: auto;
+    top: 38%;
+    left: 49%;
+    transform: scale(1.2);
+}
+
+.slides {
+    width: 300px;
+    height: auto;
+    top: 0%;
+    z-index: 3;
+    justify-content: center;
+    align-items: center;
+    display: none;
+}
+
+.wyswietlanie {
+    display: flex;
+}
+
+@keyframes rotate {
+    0% {
+        transform: rotate(-360deg)
+    }
+}
+
+#inspekcjaDane {
+    display: none;
+    height: 400px;
+    width: 200px;
+    font-size: 12px;
+    padding: 2px;
+    border-radius: 10px;
+    line-height: 14px;
+    background-color: rgb(109, 32, 32);
+    top: 40%;
+    left: 20%;
+    position: absolute;
+    opacity: 80%;
+    z-index: 3;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
+    mask-image: linear-gradient(rgba(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0)));
+    mask-size: cover;
+}
+
+#zdjecia {
+    width: 300px;
+    height: 240px;
+    border-radius: 10px;
+    justify-content: center;
+    display: flex;
+}
+
+.zdjecia {
+    width: auto;
+    height: 240px;
+    left: 50%;
+    background-repeat: repeat;
+    -webkit-mask-image: linear-gradient(rgba(0, 0, 0, 1) 85%, rgba(0, 0, 0, 0) 100%);
+    mask-image: linear-gradient(rgba(rgba(0, 0, 0, 1) 85%, rgba(0, 0, 0, 0) 100%));
+    mask-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.1s ease-in-out;
+}
+
+.zdjecia:hover {
+    height: 260px;
+    cursor: pointer;
+}
+
+#informacje {
+    padding: 7px;
+    margin-top: 2px;
+}
+
+#podZdjeciem {
+    --card-accent: rgba(255, 228, 236, 0.9);
+    --card-accent-border: rgba(255, 220, 230, 0.5);
+    --card-accent-glow: rgba(255, 190, 210, 0.22);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 0 6px;
+    box-sizing: border-box;
+}
+
+#podZdjeciem > div {
+    position: relative;
+    isolation: isolate;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(0, 0, 0, 0.25) 100%),
+        rgba(15, 12, 18, 0.35);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.35);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#podZdjeciem > div::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+    background: linear-gradient(90deg, transparent, var(--card-accent), transparent);
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 0.2s ease, left 0.2s ease, right 0.2s ease;
+}
+
+#podZdjeciem > div:hover {
+    border-color: var(--card-accent-border);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 0 14px var(--card-accent-glow),
+        0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+#podZdjeciem > div:hover::before {
+    opacity: 1;
+    left: 4%;
+    right: 4%;
+}
+
+#nameBox,
+#idBox {
+    align-items: center;
+    height: 40px;
+    font-size: 25px;
+}
+
+#nameBox p,
+#idBox p {
+    margin: 0;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+#diamBox,
+#massBox {
+    height: 60px;
+    font-size: 12px;
+    margin-top: 15px;
+}
+
+#ressBox,
+#bulkBox {
+    height: 120px;
+    font-size: 12px;
+}
+
+#diamBox p,
+#massBox p,
+#ressBox p,
+#bulkBox p {
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    text-shadow: 0 0 14px rgba(255, 255, 255, 0.55);
+}
+
+#diam,
+#mass,
+#resources,
+#usefulData {
+    margin-top: 10px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    opacity: 0.75;
+    text-shadow: none;
+}
+
+#informacjeDiam {
+    margin-top: 31px;
+}
+
+#informacjeMass {
+    margin-top: 31px;
+    font-size: 11px;
+}
+
+#informacjeRess {
+    top: 50%;
+    position: absolute;
+    transform: translateY(-50%);
+    text-align: center;
+    font-size: 15px;
+    margin-top: 0;
+}
+
+#informacjeOrbitalPeriod {
+    margin-top: 31px;
+    font-size: 13px;
+    text-align: center;
+}
+
+#informacjeTemperature {
+    margin-top: 61px;
+    font-size: 13px;
+    text-align: center;
+}
+
+#informacjeAxialTilt {
+    margin-top: 91px;
+    font-size: 13px;
+    text-align: center;
+}
+
+#nameBoxImg,
+#idBoxImg,
+#diamBoxImg,
+#massBoxImg,
+#ressBoxImg,
+#bulkBoxImg {
+    -webkit-mask-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4));
+    mask-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4));
+    mask-size: cover;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+}
+
+#nameBoxImg {
+    background-image: url("/textures/name.webp");
+    background-size: cover;
+}
+
+#idBoxImg,
+#massBoxImg {
+    background-color: black;
+}
+
+#diamBoxImg {
+    background-image: url("/textures/diam.webp");
+    background-size: cover;
+}
+
+#ressBoxImg {
+    background-image: url("/textures/ress.webp");
+    background-size: cover;
+}
+
+#bulkBoxImg {
+    background-image: url("/textures/bulk.webp");
+    background-size: cover;
+    background-position-x: 5px;
+}
+
+#svgLeft {
+    position: absolute;
+    top: 20%;
+    left: 5%;
+    transform: rotate(180deg);
+    -webkit-box-shadow: -1px -5px 15px #41465b, 5px 5px 15px #41465b,
+        inset 5px 5px 10px #212121, inset -5px -5px 10px #212121;
+    box-shadow: -1px -5px 15px #41465b, 1px 5px 15px #41465b,
+        inset 5px 5px 10px #212121, inset -5px -5px 10px #212121;
+    border-radius: 20px;
+    z-index: 7;
+}
+
+#svgRight {
+    position: absolute;
+    top: 20%;
+    right: 5%;
+    -webkit-box-shadow: -1px -5px 15px #41465b, 5px 5px 15px #41465b,
+        inset 5px 5px 10px #212121, inset -5px -5px 10px #212121;
+    box-shadow: -1px -5px 15px #41465b, 1px 5px 15px #41465b,
+        inset 5px 5px 10px #212121, inset -5px -5px 10px #212121;
+    border-radius: 20px;
+    z-index: 7;
+}
+
+.svgArrow:hover {
+    animation: invert 0.2s ease-out forwards;
+    cursor: pointer;
+}
+
+@keyframes invert {
+    from {
+        filter: invert(0)
+    }
+
+    to {
+        filter: invert(1)
+    }
+}

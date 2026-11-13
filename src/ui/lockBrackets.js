@@ -1,3 +1,5 @@
+import { jitterNoise } from '../camera/cameraRig.js';
+
 const COORDINATE_DECIMALS = 1;
 const DELTA_DECIMALS = 2;
 
@@ -40,13 +42,22 @@ export function easeOutCubic(t) {
 
 /**
  * Wybiera stan klamer na podstawie trybu kamery.
+ * W trakcie lotu z focusu na focus klamry "szukają": zacieśniają się tylko do `searchClosing`.
+ * Namierzanie kontynuuje od tego miejsca do pełnego zamknięcia, więc między fazami nie ma skoku.
  * @param {string} mode - tryb kamery z cameraRig
  * @param {number} phaseProgress - postęp bieżącej fazy kamery 0..1
- * @returns {{visibility: 'closing'|'locked'|'fading'|'hidden', closing: number}}
- *   closing: zamykanie się klamer w trakcie namierzania; locked: cel namierzony; fading: znikają; hidden: ukryte
+ * @param {boolean} refocusing - czy trwa lot zakończony automatycznym przybliżeniem (cameraRig.refocusing)
+ * @param {number} searchClosing - jak bardzo klamry zacieśniają się w trakcie szukania, 0..1
+ * @returns {{visibility: 'searching'|'closing'|'locked'|'fading'|'hidden', closing: number}}
+ *   searching: szukanie w dużym obszarze; closing: namierzanie; locked: cel namierzony; fading: znikają; hidden: ukryte
  */
-export function lockBracketsState(mode, phaseProgress) {
-    if (mode === 'focusLock') return { visibility: 'closing', closing: phaseProgress };
+export function lockBracketsState(mode, phaseProgress, refocusing, searchClosing) {
+    if (mode === 'travel' && refocusing) {
+        return { visibility: 'searching', closing: searchClosing * easeOutCubic(phaseProgress) };
+    }
+    if (mode === 'focusLock') {
+        return { visibility: 'closing', closing: searchClosing + (1 - searchClosing) * phaseProgress };
+    }
     if (mode === 'focusHold') return { visibility: 'locked', closing: 1 };
     if (mode === 'focusZoom') return { visibility: 'fading', closing: 1 };
     return { visibility: 'hidden', closing: 0 };
@@ -66,6 +77,33 @@ export function bracketFrame(center, radius, viewport, closing, config) {
     const start = Math.max(viewport.width, viewport.height, target) * config.startScale;
     const size = start + (target - start) * easeOutCubic(closing);
     return { x: center.x - size / 2, y: center.y - size / 2, size };
+}
+
+/**
+ * Fałszywe współrzędne w trakcie szukania: punkt z szukanego obszaru wokół planety, zmieniany co tick.
+ * @param {{x: number, y: number, z: number}} position - prawdziwa pozycja planety
+ * @param {number} spread - promień szukanego obszaru w jednostkach świata
+ * @param {number} tick - numer kroku (zmienia się kilka razy na sekundę); ten sam tick daje ten sam punkt
+ * @returns {{x: number, y: number, z: number}} punkt w odległości najwyżej `spread` na każdej osi
+ */
+export function searchCoordinates(position, spread, tick) {
+    return {
+        x: position.x + spread * jitterNoise(tick * 3 + 1),
+        y: position.y + spread * jitterNoise(tick * 3 + 2),
+        z: position.z + spread * jitterNoise(tick * 3 + 3),
+    };
+}
+
+/**
+ * Promień obszaru objętego klamrami, przeliczony z pikseli na jednostki świata przy odległości planety.
+ * @param {number} frameSize - bok kwadratu klamer w pikselach
+ * @param {number} worldRadius - promień planety w jednostkach świata
+ * @param {number} pixelRadius - promień planety na ekranie w pikselach
+ * @returns {number} promień obszaru w jednostkach świata (0, gdy planeta nie ma rozmiaru na ekranie)
+ */
+export function searchSpread(frameSize, worldRadius, pixelRadius) {
+    if (!(pixelRadius > 0)) return 0;
+    return (frameSize / 2) * (worldRadius / pixelRadius);
 }
 
 /**
