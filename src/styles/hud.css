@@ -186,3 +186,180 @@
     white-space: nowrap;
     pointer-events: none;
 }
+
+#targetReticle {
+    --reticle-color: #fff;
+    --reticle-arm: 18%;
+    --reticle-line: 1px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 14;
+    pointer-events: none;
+    opacity: 0;
+}
+
+#targetReticle .reticle-corner {
+    position: absolute;
+    width: var(--reticle-arm);
+    height: var(--reticle-arm);
+    border: 0 solid var(--reticle-color);
+    transition: translate 0.25s ease-out;
+}
+
+#targetReticle .top-left {
+    left: 0;
+    top: 0;
+    border-top-width: var(--reticle-line);
+    border-left-width: var(--reticle-line);
+}
+
+#targetReticle .top-right {
+    right: 0;
+    top: 0;
+    border-top-width: var(--reticle-line);
+    border-right-width: var(--reticle-line);
+}
+
+#targetReticle .bottom-left {
+    left: 0;
+    bottom: 0;
+    border-bottom-width: var(--reticle-line);
+    border-left-width: var(--reticle-line);
+}
+
+#targetReticle .bottom-right {
+    right: 0;
+    bottom: 0;
+    border-bottom-width: var(--reticle-line);
+    border-right-width: var(--reticle-line);
+}
+
+#targetReticle .reticle-tick {
+    position: absolute;
+    background-color: var(--reticle-color);
+    opacity: 0.7;
+}
+
+#targetReticle .reticle-tick.top,
+#targetReticle .reticle-tick.bottom {
+    left: 50%;
+    width: var(--reticle-line);
+    height: 8%;
+}
+
+#targetReticle .reticle-tick.top {
+    top: -8%;
+}
+
+#targetReticle .reticle-tick.bottom {
+    bottom: -8%;
+}
+
+#targetReticle .reticle-tick.left,
+#targetReticle .reticle-tick.right {
+    top: 50%;
+    height: var(--reticle-line);
+    width: 8%;
+}
+
+#targetReticle .reticle-tick.left {
+    left: -8%;
+}
+
+#targetReticle .reticle-tick.right {
+    right: -8%;
+}
+
+#targetReticle .reticle-name,
+#targetReticle .reticle-hint {
+    position: absolute;
+    left: 100%;
+    margin-left: 6px;
+    color: var(--reticle-color);
+    font-family: Minecraft, system-ui, sans-serif;
+    white-space: nowrap;
+}
+
+#targetReticle .reticle-name {
+    bottom: 100%;
+    margin-bottom: 2px;
+    font-size: 0.85em;
+    letter-spacing: 0.04em;
+}
+
+#targetReticle .reticle-hint {
+    top: 100%;
+    margin-top: 2px;
+    font-size: 0.65em;
+    opacity: 0.6;
+    letter-spacing: 0.08em;
+}
+
+#targetReticle[data-state="hover"] {
+    opacity: 1;
+    animation: reticle-acquire 0.18s ease-out;
+}
+
+#targetReticle[data-state="hover"] .reticle-corner {
+    animation: reticle-breathe 0.9s ease-in-out infinite alternate;
+}
+
+#targetReticle[data-state="hidden"] {
+    opacity: 0;
+    transition: opacity 0.15s ease-out;
+}
+
+@keyframes reticle-acquire {
+    from {
+        opacity: 0;
+        scale: 1.45;
+    }
+
+    to {
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@keyframes reticle-breathe {
+    from {
+        scale: 1;
+    }
+
+    to {
+        scale: 0.86;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #targetReticle,
+    #targetReticle .reticle-corner {
+        animation: none !important;
+    }
+}
+
+#cursorHint {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 16;
+    margin: 0;
+    padding: 3px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+    background-color: var(--panel-bg);
+    color: #fff;
+    font-family: Minecraft, system-ui, sans-serif;
+    font-size: 0.7em;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-out;
+}
+
+#cursorHint[data-state="visible"] {
+    opacity: 0.8;
+}

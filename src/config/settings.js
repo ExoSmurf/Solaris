@@ -74,11 +74,23 @@ export const hud = {
         searchClosing: 0.35,
         searchJitterRate: 6,
     },
+    hover: {
+        padding: 1.6,
+        minSize: 40,
+        startScale: 1,
+        clickTolerance: 6,
+        minHitRadius: 28,
+        hitScale: 1.6,
+        hintOffset: 18,
+        scrambleDuration: 0.35,
+        scrambleDelay: 0.25,
+    },
     delta: {
         smoothing: 0.85,
     },
     scramble: {
         duration: 0.8,
+        delay: 0.15,
     },
     fit: {
         minSize: 8,

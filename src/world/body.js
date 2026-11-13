@@ -4,16 +4,18 @@ import { advance } from '../motion/motion.js';
 const MAP_KEYS = ['map', 'lightMap', 'bumpMap', 'normalMap', 'aoMap', 'emissiveMap', 'specularMap'];
 
 /**
- * Mierzy promień modelu (kula otaczająca, ze skalą modelu), bez względu na jego pozycję.
+ * Mierzy kulę otaczającą model (ze skalą modelu): promień i środek w układzie lokalnym modelu.
+ * Środek bywa przesunięty względem punktu zaczepienia modelu (tak jest zbudowana część modeli).
  * Wywoływane przed podpięciem innych ciał (księżyców), żeby ich nie liczyć.
  * @param {THREE.Object3D} mesh - model ciała
- * @returns {number} promień w jednostkach świata (0 dla pustego modelu)
+ * @returns {{radius: number, localCenter: THREE.Vector3}} promień w jednostkach świata (0 dla pustego modelu)
  */
-function measureRadius(mesh) {
+function measureBounds(mesh) {
     mesh.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(mesh);
-    if (box.isEmpty()) return 0;
-    return box.getBoundingSphere(new THREE.Sphere()).radius;
+    if (box.isEmpty()) return { radius: 0, localCenter: new THREE.Vector3() };
+    const sphere = box.getBoundingSphere(new THREE.Sphere());
+    return { radius: sphere.radius, localCenter: mesh.worldToLocal(sphere.center.clone()) };
 }
 
 /**
@@ -34,7 +36,9 @@ export class CelestialBody {
         this.wobbleDown = false;
 
         if (config.scale !== undefined) mesh.scale.setScalar(config.scale);
-        this.radius = measureRadius(mesh);
+        const bounds = measureBounds(mesh);
+        this.radius = bounds.radius;
+        this.localCenter = bounds.localCenter;
 
         this.pivot = null;
         if (config.orbit) {
@@ -43,6 +47,15 @@ export class CelestialBody {
             this.orbitSpeed = config.orbit.speed;
             this.pivotOffset = config.orbit.position ?? {};
         }
+    }
+
+    /**
+     * Środek widocznego modelu w świecie (uwzględnia obrót, orbitę i przesunięcie modelu względem punktu zaczepienia).
+     * @param {THREE.Vector3} target - wektor, do którego zapisać wynik
+     * @returns {THREE.Vector3} target
+     */
+    worldCenter(target) {
+        return this.mesh.localToWorld(target.copy(this.localCenter));
     }
 
     /**

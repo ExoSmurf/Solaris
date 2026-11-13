@@ -27,6 +27,7 @@ import { fitTextToWidth } from './ui/fitText.js';
 import { createSlideArrow } from './ui/slideArrow.js';
 import { closeDialog, isDialogVisible, openDialog, preventInstantEscape } from './ui/dialogs.js';
 import { createScrambler } from './ui/scrambleText.js';
+import { createTargetReticle, cursorAction, isClickGesture, pickOnScreen } from './ui/targetReticle.js';
 import { createImagePreloader, planetImageUrls } from './ui/preloadImages.js';
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -291,7 +292,8 @@ const hudProjected = new THREE.Vector3();
 function updateHud(dt) {
     const body = activeBodies()[cameraRig.targetIndex];
     if (!body) return;
-    body.mesh.getWorldPosition(hudTargetPosition);
+    camera.updateMatrixWorld();
+    body.worldCenter(hudTargetPosition);
 
     if (hudPreviousTarget === body) {
         hudSpeed = smoothValue(hudSpeed, movementSpeed(hudPreviousPosition, hudTargetPosition, dt), hudConfig.delta.smoothing);
@@ -316,6 +318,169 @@ function updateHud(dt) {
         delta: formatDelta(hudSpeed),
         progress: bracketsState.closing,
     });
+}
+
+const reticleElement = document.getElementById("targetReticle");
+const reticle = createTargetReticle(
+    reticleElement,
+    { name: reticleElement.querySelector(".reticle-name") },
+    createScrambler(),
+    hudConfig.hover,
+);
+const pointer = { x: 0, y: 0, inside: false, down: null };
+const hoverPosition = new THREE.Vector3();
+const hoverProjected = new THREE.Vector3();
+let hoveredIndex = -1;
+
+renderer.domElement.addEventListener("pointermove", (event) => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.inside = true;
+});
+renderer.domElement.addEventListener("pointerleave", () => {
+    pointer.inside = false;
+});
+const MOUSE_BUTTON = { primary: 0, secondary: 2 };
+renderer.domElement.addEventListener("pointerdown", (event) => {
+    pointer.down = { x: event.clientX, y: event.clientY, button: event.button };
+});
+renderer.domElement.addEventListener("pointerup", (event) => {
+    const clicked = isClickGesture(pointer.down, { x: event.clientX, y: event.clientY }, hudConfig.hover.clickTolerance);
+    const button = pointer.down?.button;
+    pointer.down = null;
+    if (!clicked) return;
+    if (button === MOUSE_BUTTON.primary) selectHoveredPlanet();
+    else if (button === MOUSE_BUTTON.secondary) toggleZoomFromCursor();
+});
+renderer.domElement.addEventListener("contextmenu", (event) => event.preventDefault());
+
+/**
+ * Czy można teraz celować kursorem w planety (nic się nie rusza, nie trwa przelot).
+ * @returns {boolean}
+ */
+function canTargetWithCursor() {
+    return systemReady() && !warp.active && !isSwitchingSolar && !cameraRig.isBusy();
+}
+
+/**
+ * Szuka planety pod kursorem i ustawia na niej celownik podglądu (albo go chowa).
+ * Obecnie śledzonej planety nie podświetla, bo kliknięcie w nią nic by nie zmieniło.
+ * @returns {void}
+ */
+function updateHover() {
+    camera.updateMatrixWorld();
+    hoveredIndex = -1;
+    const interactive = pointer.inside && canTargetWithCursor();
+    if (interactive) hoveredIndex = pickOnScreen(pointer, hoverCandidates(), hudConfig.hover);
+    showCursorAction(cursorAction(cameraRig.mode, hoveredIndex >= 0, interactive));
+    if (hoveredIndex < 0) {
+        reticle.hide();
+        return;
+    }
+    const frame = hoverFrame(activeBodies()[hoveredIndex]);
+    if (!frame) {
+        reticle.hide();
+        return;
+    }
+    reticle.hover(frame, planetsInfo[globalPlanetIndex(hoveredIndex)].name);
+}
+
+const CURSOR_STYLES = { target: "crosshair", "zoom-in": "zoom-in", "zoom-out": "zoom-out", none: "" };
+const CURSOR_HINTS = { "zoom-in": "RMB // ZOOM IN", "zoom-out": "RMB // ZOOM OUT" };
+const cursorHint = document.getElementById("cursorHint");
+let shownCursorAction = null;
+
+/**
+ * Ustawia kursor nad sceną i podpowiedź przy nim (prawym przyciskiem można przybliżyć/oddalić zalockowaną planetę).
+ * @param {'target'|'zoom-in'|'zoom-out'|'none'} action - wynik cursorAction()
+ * @returns {void}
+ */
+function showCursorAction(action) {
+    if (action !== shownCursorAction) {
+        shownCursorAction = action;
+        renderer.domElement.style.cursor = CURSOR_STYLES[action];
+        const hint = CURSOR_HINTS[action];
+        if (hint) cursorHint.textContent = hint;
+        cursorHint.dataset.state = hint ? "visible" : "hidden";
+    }
+    if (CURSOR_HINTS[action]) {
+        cursorHint.style.transform = `translate(${pointer.x + hudConfig.hover.hintOffset}px, ${pointer.y + hudConfig.hover.hintOffset}px)`;
+    }
+}
+
+/**
+ * Planety, w które można wycelować: środki i promienie na ekranie, bez księżyców, obecnego celu i ciał za kamerą.
+ * @returns {{index: number, x: number, y: number, radius: number}[]}
+ */
+function hoverCandidates() {
+    const candidates = [];
+    activeBodies().forEach((body, index) => {
+        if (body.isMoon || index === cameraRig.targetIndex) return;
+        const placement = screenPlacement(body);
+        if (placement) candidates.push({ index, ...placement.center, radius: placement.radius });
+    });
+    return candidates;
+}
+
+/**
+ * Środek i promień ciała na ekranie w pikselach.
+ * @param {{mesh: THREE.Object3D, radius: number}} body - ciało układu
+ * @returns {{center: {x: number, y: number}, radius: number}|null} null, gdy ciało jest poza kadrem
+ */
+function screenPlacement(body) {
+    body.worldCenter(hoverPosition);
+    hoverProjected.copy(hoverPosition).project(camera);
+    if (hoverProjected.z < -1 || hoverProjected.z > 1) return null;
+    return {
+        center: {
+            x: ((hoverProjected.x + 1) / 2) * window.innerWidth,
+            y: ((1 - hoverProjected.y) / 2) * window.innerHeight,
+        },
+        radius: screenRadius(body.radius, camera.position.distanceTo(hoverPosition), camera.fov, window.innerHeight),
+    };
+}
+
+/**
+ * Ramka celownika wokół ciała na ekranie.
+ * @param {{mesh: THREE.Object3D, radius: number}} body - ciało pod kursorem
+ * @returns {{x: number, y: number, size: number}|null} null, gdy ciało jest poza kadrem
+ */
+function hoverFrame(body) {
+    const placement = screenPlacement(body);
+    if (!placement) return null;
+    const viewport = { width: window.innerWidth, height: window.innerHeight };
+    return bracketFrame(placement.center, placement.radius, viewport, 1, hudConfig.hover);
+}
+
+/**
+ * Indeks planety we wspólnej liście planetsInfo (oba układy po kolei).
+ * @param {number} index - indeks ciała w aktywnym układzie
+ * @returns {number}
+ */
+function globalPlanetIndex(index) {
+    return currentSolar == 1 ? index : index + planetySun.length;
+}
+
+/**
+ * Wybiera planetę pod kursorem: kamera leci do niej tak jak po wybraniu z paska, celownik znika.
+ * @returns {void}
+ */
+function selectHoveredPlanet() {
+    if (hoveredIndex < 0 || !canTargetWithCursor()) return;
+    if (!cameraRig.select(hoveredIndex)) return;
+    reticle.hide();
+    showCursorAction("none");
+    syncCameraUi();
+}
+
+/**
+ * Prawy przycisk myszy: przybliża zalockowaną planetę albo oddala, jeśli już jest przybliżona
+ * (to samo co przełącznik Planet Focus).
+ * @returns {void}
+ */
+function toggleZoomFromCursor() {
+    if (!systemReady() || warp.active || isSwitchingSolar || cameraRig.isBusy()) return;
+    if (cameraRig.setFocus(!cameraRig.isFocused())) syncCameraUi();
 }
 
 function bracketCoordinates(bracketsState, body, placement) {
@@ -409,7 +574,7 @@ function syncCameraUi() {
         if (lastSyncedMode !== 'focused') {
             showInfo();
             fitInfoText();
-            scrambler.reveal(infoTextElements(), hudConfig.scramble.duration);
+            scrambler.reveal(infoTextElements(), hudConfig.scramble.duration, hudConfig.scramble.delay);
         }
     } else {
         scrambler.cancel();
@@ -1043,6 +1208,7 @@ function animate(time = performance.now()) {
         updateHud(dt);
         activeSystem.update(frames);
     }
+    updateHover();
     renderWithWarp(dt);
 
     requestAnimationFrame(animate);

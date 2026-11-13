@@ -159,9 +159,10 @@ export function createScrambler({
          * Pokazuje tekst elementów zaszyfrowany i odszyfrowuje go w czasie `durationSeconds`.
          * @param {HTMLElement[]} elements - elementy z tekstem (np. panel informacji o planecie)
          * @param {number} durationSeconds - czas odszyfrowania w sekundach
+         * @param {number} [delaySeconds=0] - jak długo tekst zostaje w pełni zaszyfrowany, zanim zacznie się odszyfrowywać
          * @returns {void}
          */
-        reveal(elements, durationSeconds) {
+        reveal(elements, durationSeconds, delaySeconds = 0) {
             finish();
             const nodes = collectTextNodes(elements);
             const flexParents = [...new Set(nodes.map((node) => node.parentElement))].filter(isFlexOrGrid);
@@ -174,12 +175,13 @@ export function createScrambler({
                 return;
             }
             const order = revealOrder(chars.length);
-            const start = now();
+            const start = now() + delaySeconds * 1000;
             let revealed = 0;
             running = { runs, flows, frameId: null };
 
             const tick = () => {
-                const progress = durationSeconds > 0 ? (now() - start) / (durationSeconds * 1000) : 1;
+                const elapsed = Math.max(now() - start, 0);
+                const progress = durationSeconds > 0 ? elapsed / (durationSeconds * 1000) : 1;
                 if (progress >= 1) {
                     finish();
                     return;
