@@ -47,6 +47,11 @@ export const render = {
     },
 };
 
+export const motion = {
+    fps: 60,
+    maxFrames: 6,
+};
+
 export const paths = {
     images: '/textures/images/',
     previews: '/textures/images/previews/',

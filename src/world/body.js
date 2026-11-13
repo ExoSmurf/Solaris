@@ -1,22 +1,24 @@
 import * as THREE from 'three';
+import { advance } from '../motion/motion.js';
 
 const MAP_KEYS = ['map', 'lightMap', 'bumpMap', 'normalMap', 'aoMap', 'emissiveMap', 'specularMap'];
 
-function applyPosition(object, values, fallback) {
-    for (const axis of ['x', 'y', 'z']) {
-        const value = values[axis];
-        if (value !== undefined) object.position[axis] = value;
-        else if (fallback) object.position[axis] = 0;
-    }
-}
-
+/**
+ * Jedno ciało niebieskie w scenie: model (mesh) i opcjonalny pivot, wokół którego krąży.
+ */
 export class CelestialBody {
+    /**
+     * @param {object} config - wpis ciała z config/systems.js (id, position, spin, orbit, scale, wobble, showInBar)
+     * @param {THREE.Object3D} mesh - załadowany model (gltf.scene)
+     */
     constructor(config, mesh) {
         this.id = config.id;
         this.isMoon = config.showInBar === false;
         this.spin = config.spin;
         this.meshOffset = config.position ?? {};
         this.mesh = mesh;
+        this.wobble = config.wobble ?? null;
+        this.wobbleDown = false;
 
         if (config.scale !== undefined) mesh.scale.setScalar(config.scale);
 
@@ -29,20 +31,27 @@ export class CelestialBody {
         }
     }
 
+    /**
+     * Obiekt, który dodajemy do sceny lub do rodzica.
+     * @returns {THREE.Object3D} pivot, jeśli ciało krąży po orbicie; w przeciwnym razie sam mesh
+     */
     get object() {
         return this.pivot ?? this.mesh;
     }
 
-    update() {
-        applyPosition(this.mesh, this.meshOffset, false);
-        this.mesh.rotation.y += this.spin;
-
-        if (this.pivot) {
-            applyPosition(this.pivot, this.pivotOffset, true);
-            this.pivot.rotation.y += this.orbitSpeed;
-        }
+    /**
+     * Przesuwa ciało o jeden krok animacji (pozycja, obrót, orbita).
+     * @param {number} [frames=1] - ile klatek 60 FPS minęło
+     * @returns {void}
+     */
+    update(frames = 1) {
+        advance(this, frames);
     }
 
+    /**
+     * Zwalnia pamięć GPU: geometrie, materiały i tekstury modelu. Po tym ciała nie da się już użyć.
+     * @returns {void}
+     */
     dispose() {
         this.mesh.traverse((node) => {
             if (!node.isMesh) return;
