@@ -262,16 +262,17 @@ export function createCameraRig({ camera, controls, config, onChange = () => {} 
         /**
          * Włącza lub wyłącza przybliżenie na śledzoną planetę.
          * @param {boolean} on - true: przybliż (dwie fazy z przystankiem); false: oddal
+         * @param {{then?: function}} [options] - then: wywoływane po zakończeniu oddalania (tylko przy on = false)
          * @returns {boolean} false, gdy zmiana nie jest możliwa (ruch w toku, orbita wokół centrum, już w tym stanie)
          */
-        setFocus(on) {
+        setFocus(on, { then = null } = {}) {
             if (isBusy()) return false;
             if (on && mode === 'follow') {
                 startFocus();
                 return true;
             }
             if (!on && mode === 'focused') {
-                startUnfocus(null);
+                startUnfocus(then);
                 return true;
             }
             return false;

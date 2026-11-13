@@ -2,13 +2,14 @@ import * as THREE from 'three';
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { systems } from "./config/systems.js";
 import { bodyInfo } from "./config/info.js";
-import { paths, camera as cameraConfig, light as lightConfig, render as renderConfig, motion as motionConfig, hud as hudConfig, loading as loadingConfig } from "./config/settings.js";
+import { paths, camera as cameraConfig, light as lightConfig, render as renderConfig, motion as motionConfig, hud as hudConfig, loading as loadingConfig, warp as warpConfig } from "./config/settings.js";
 import { loadSolarSystem } from "./world/solarSystem.js";
 import { framesBetween } from "./motion/motion.js";
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { createCameraRig, nextPlanetIndex } from './camera/cameraRig.js';
+import { createWarpTransition, createWarpStars } from './camera/warpTransition.js';
 import { cameraStatus, createCameraStatus } from './ui/cameraStatus.js';
 import {
     bracketFrame,
@@ -75,7 +76,7 @@ const bloomPass = new UnrealBloomPass(
 )
 composer.addPass(bloomPass)
 
-function getStarfield({ numStars = 200 } = {}) {
+function getStarfield({ numStars = 2500 } = {}) {
     function randomSpherePoint() {
         const radius = Math.random() * 25 + 35;
         const u = Math.random();
@@ -119,7 +120,13 @@ function getStarfield({ numStars = 200 } = {}) {
 }
 const starfield = getStarfield();
 starfield.name = "starfield";
+starfield.material.transparent = true;
 scene.add(starfield)
+
+const warp = createWarpTransition(warpConfig);
+const warpStars = createWarpStars(warpConfig.stars);
+scene.add(warpStars.object);
+const warpShift = new THREE.Vector3();
 
 let currentSolar = 1
 let planetySun = []
@@ -655,10 +662,13 @@ function createPlanetBar() {
         bar.appendChild(btn);
     }
 }
-function delPlanetBar() {
-    const bar = document.getElementById("planetBar");
-    bar.innerHTML = "";
-    bar.style.display = "none";
+/**
+ * Chowa pasek planet w dół (albo wysuwa go z powrotem) animacją z CSS (klasa `stowed`).
+ * @param {boolean} stowed - true: schowany, false: widoczny
+ * @returns {void}
+ */
+function stowPlanetBar(stowed) {
+    document.getElementById("planetBar").classList.toggle("stowed", stowed);
 }
 
 function goToPlanet(globalIdx) {
@@ -820,11 +830,8 @@ vid.addEventListener('ended', () => {
     if (loadingCompleted) {
         if (vid) {
             opacityFall = true
-            rumpup = false
-            if (!resetingWithButton) {
-                createPlanetBar();
-                startFalldown();
-            }
+            createPlanetBar();
+            startFalldown();
             const firstBtn = document.getElementById("planetBar").querySelector(".planetBar-btn");
             firstBtn.classList.add("active");
             document.getElementById("planetBar").style.display = "flex";
@@ -852,89 +859,61 @@ function opacityFalldown() {
         opacityFall = false;
     }
 }
-let rumpup = false
-
 let isSwitchingSolar = false;
 function nextSolar() {
     if (isSwitchingSolar) return;
     isSwitchingSolar = true;
-    startTransitionOut(() => {
-        unloadCurrentSolar(() => {
-            slideArrow.hide();
-            loadNextSolar(() => {
-                startTransitionIn();
-                isSwitchingSolar = false;
-                updatePlanetBarActive();
-            });
-        });
+    if (cameraRig.setFocus(false, { then: startWarp })) {
+        syncCameraUi();
+        return;
+    }
+    startWarp();
+}
+
+/**
+ * Chowa pasek planet i zaczyna przelot do drugiego układu (rozładowanie, ładowanie, przylot).
+ * @returns {void}
+ */
+function startWarp() {
+    slideArrow.hide();
+    stowPlanetBar(true);
+    warp.start({
+        onCruise: () => {
+            unloadCurrentSolar();
+            loadNextSolar()
+                .then(() => {
+                    warp.arrive();
+                    stowPlanetBar(false);
+                })
+                .catch(console.error);
+        },
+        onDone: () => {
+            isSwitchingSolar = false;
+            info();
+            updatePlanetBarActive();
+        },
     });
 }
-let resetingWithButton = false;
-function startTransitionOut(callback) {
-    resetingWithButton = true;
-    rumpup = true;
-    playVideo();
-    startRumpup();
-    function checkOpacity() {
-        if (parseFloat(vid.style.opacity) >= 1.5) {
-            callback();
-        } else {
-            setTimeout(checkOpacity, 20);
-        }
-    }
-    checkOpacity();
 
-}
-
-function unloadCurrentSolar(callback) {
-    speedFall = 3;
+function unloadCurrentSolar() {
     if (activeSystem) activeSystem.unload();
     activeSystem = null;
     removeDivs();
     const dialogImg = document.getElementById("dialogImg");
     if (dialogImg) dialogImg.src = "";
-    callback();
 }
 
-async function loadNextSolar(callback) {
+async function loadNextSolar() {
     currentSolar = currentSolar == 1 ? 2 : 1;
     removeDivs();
-    delPlanetBar();
     await loadSystem(currentSolar);
     createPlanetBar();
-    callback();
-}
-
-function startTransitionIn() {
-    opacityFall = true;
-    startFalldown();
-    info();
 }
 
 let opacityVal = 100
 let speedFall = 2.5
-function opacityRumpup() {
-    vid.style.opacity = opacityVal + "%"
-    plate.style.opacity = opacityVal + "%"
-    loadingText.style.display = "block"
-    allLoaded.style.display = "none"
-    allLoaded.style.opacity = opacityVal + "%"
-    if (vid.style.opacity >= 1.5) {
-        rumpup = false
-    }
-    if (vid.style.opacity <= 1.5) {
-        opacityVal += speedFall
-    }
-    if (opacityVal >= 5) {
-        vid.style.zIndex = 10;
-        plate.style.zIndex = 10;
-        nextSolar();
-
-    }
-}
 
 let falldownInterval = null;
-let rumpupInterval = null;
 
 let falldownHoldTimer = null;
 
@@ -959,17 +938,6 @@ function startFalldown() {
     }, loadingConfig.allLoadedHold * 1000);
 }
 
-function startRumpup() {
-    if (rumpupInterval) clearInterval(rumpupInterval);
-    rumpupInterval = setInterval(() => {
-        if (!rumpup) {
-            clearInterval(rumpupInterval);
-            return;
-        }
-        opacityRumpup();
-    }, 2);
-}
-
 function isMobile() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
@@ -979,20 +947,39 @@ function animate(time = performance.now()) {
         console.log("Mobile device detected, disabling animations.");
         return;
     }
-    if (!systemReady()) {
+    if (!systemReady() && !warp.active) {
         renderLoopRunning = false;
         return;
     }
 
     const frames = framesBetween(time - lastFrameTime, motionConfig.maxFrames, motionConfig.fps);
+    const dt = frames / motionConfig.fps;
     lastFrameTime = time;
 
-    cameraRig.update(frames / motionConfig.fps);
-    updateHud(frames / motionConfig.fps);
-    activeSystem.update(frames);
-    render();
+    if (systemReady()) {
+        cameraRig.update(dt);
+        updateHud(dt);
+        activeSystem.update(frames);
+    }
+    renderWithWarp(dt);
 
     requestAnimationFrame(animate);
+}
+
+/**
+ * Renderuje klatkę z przesunięciem kamery i smugami gwiazd przelotu między układami.
+ * Przesunięcie jest dodawane tylko na czas renderu, żeby nie mieszać w stanie kamery i orbity.
+ * @param {number} dt - czas klatki w sekundach
+ * @returns {void}
+ */
+function renderWithWarp(dt) {
+    const { offset, speed, intensity } = warp.update(dt);
+    warpShift.set(1, 0, 0).applyQuaternion(camera.quaternion).multiplyScalar(offset);
+    camera.position.add(warpShift);
+    starfield.material.opacity = 1 - intensity;
+    warpStars.update(dt, speed, intensity, camera);
+    render();
+    camera.position.sub(warpShift);
 }
 
 function render() {
@@ -1018,6 +1005,7 @@ if (new URLSearchParams(location.search).has('test')) {
         get fov() { return camera.fov; },
         get transitionComplete() { return !cameraRig.isBusy(); },
         get cameraMode() { return cameraRig.mode; },
+        get warping() { return warp.active; },
         get loaded() {
             return systemReady();
         },

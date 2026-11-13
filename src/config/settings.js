@@ -90,6 +90,22 @@ export const loading = {
     allLoadedHold: 0.8,
 };
 
+export const warp = {
+    distance: 60,
+    accelerateDuration: 1.2,
+    decelerateDuration: 1.8,
+    minCruiseDuration: 0.6,
+    stars: {
+        count: 500,
+        nearDepth: 6,
+        farDepth: 70,
+        screenMargin: 1.2,
+        streakDuration: 0.05,
+        hue: 0.6,
+        saturation: 0.2,
+    },
+};
+
 export const paths = {
     cardTextures: ['/textures/name.webp', '/textures/diam.webp', '/textures/ress.webp', '/textures/bulk.webp'],
     images: '/textures/images/',

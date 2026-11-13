@@ -434,6 +434,7 @@
 
 #planetBar {
     min-height: 70px;
+    transition: translate 0.45s ease-in-out, opacity 0.45s ease-in-out;
     bottom: 30px;
     gap: 12px;
     background: var(--panel-bg);
@@ -460,6 +461,18 @@
     overflow: visible;
     min-height: 70px;
     max-height: 70px;
+}
+
+#planetBar.stowed {
+    translate: 0 calc(100% + 60px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #planetBar {
+        transition: none;
+    }
 }
 
 .planetBar-btn img {
