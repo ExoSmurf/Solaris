@@ -42,7 +42,21 @@
 			align-items: center;
 			justify-content: center;
 			min-height: 100vh;
+			min-height: 100dvh;
 			padding: 16px;
+		}
+
+		html,
+		body,
+		#grid {
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+		}
+
+		html::-webkit-scrollbar,
+		body::-webkit-scrollbar,
+		#grid::-webkit-scrollbar {
+			display: none;
 		}
 
 		main {
@@ -107,6 +121,8 @@
 		#gallery {
 			position: fixed;
 			inset: 0;
+			height: 100vh;
+			height: 100dvh;
 			display: none;
 			flex-direction: column;
 			background: rgba(5, 5, 8, 0.97);
@@ -139,6 +155,7 @@
 
 		#grid {
 			flex: 1;
+			min-height: 0;
 			overflow-y: auto;
 			display: flex;
 			flex-wrap: wrap;
@@ -191,7 +208,32 @@
 			right: 12px;
 			margin: 0;
 		}
-		</style>
+			@media (max-height: 720px) {
+			main {
+				padding: 16px 18px;
+			}
+
+			h1 {
+				font-size: 1.8rem;
+				margin-bottom: 6px;
+			}
+
+			p {
+				font-size: 0.9rem;
+				line-height: 1.35;
+				margin-bottom: 8px;
+			}
+
+			.contact {
+				margin-top: 12px;
+				padding-top: 10px;
+			}
+
+			.button {
+				margin-top: 10px;
+			}
+		}
+	</style>
 </head>
 
 <body>
@@ -240,13 +282,26 @@
 	</div>
 
 	<script>
+		const highRes = (src) => src.replace('.webp', '2.webp');
+		// Wysoka jakość ładowana w tle, po jednym zdjęciu, gdy przeglądarka jest bezczynna.
+		const preloadQueue = [...document.querySelectorAll('#grid img')].map((img) => highRes(img.src));
+		const idle = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 300));
+		const preloadNext = () => {
+			const url = preloadQueue.shift();
+			if (!url) return;
+			const image = new Image();
+			image.onload = image.onerror = () => idle(preloadNext);
+			image.src = url;
+		};
+		window.addEventListener('load', () => idle(preloadNext));
+
 		const gallery = document.getElementById('gallery');
 		document.getElementById('openGallery').addEventListener('click', () => gallery.classList.add('open'));
 		document.getElementById('closeGallery').addEventListener('click', () => gallery.classList.remove('open'));
 		const lightbox = document.getElementById('lightbox');
 		const lightboxImg = document.getElementById('lightboxImg');
 		document.querySelectorAll('#grid img').forEach((img) => img.addEventListener('click', () => {
-			lightboxImg.src = img.src;
+			lightboxImg.src = highRes(img.src);
 			lightbox.classList.add('open');
 		}));
 		document.getElementById('closeLightbox').addEventListener('click', () => lightbox.classList.remove('open'));

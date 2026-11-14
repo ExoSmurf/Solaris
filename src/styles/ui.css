@@ -624,7 +624,7 @@
 
 
 @media (max-width: 1000px) {
-    body>*:not(#navs):not(#contactDialog):not(#masterGalleryDialog):not(#mobileWelcome) {
+    body>*:not(#navs):not(#contactDialog):not(#masterGalleryDialog) {
         display: none !important;
     }
 
@@ -644,22 +644,6 @@
 
     #planetBar {
         display: none !important;
-    }
-
-    #mobileWelcome {
-        display: block !important;
-        text-align: center;
-        margin: calc(40 * var(--u)) auto 0 auto;
-        font-size: 1.1em;
-        color: var(--text-muted);
-        background: rgba(20, 20, 20, 1);
-        border-radius: calc(10 * var(--u));
-        padding: calc(16 * var(--u));
-        max-width: calc(90 * 16.6667 * var(--u));
-        word-break: break-word;
-        overflow-wrap: break-word;
-        box-sizing: border-box;
-        text-shadow: calc(1 * var(--u)) calc(1 * var(--u)) calc(2 * var(--u)) var(--accent-deep);
     }
 
     #planetBarLabel {
