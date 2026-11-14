@@ -1,23 +1,26 @@
 #inspekcja {
     display: none;
-    height: 500px;
-    width: 300px;
+    height: calc(41.67 * 12 * var(--u));
+    width: calc(25 * 12 * var(--u));
     background-image: linear-gradient(rgb(122, 102, 106) 50%, rgb(172, 42, 68)100%);
     top: 25%;
     left: 25%;
     position: absolute;
     opacity: 95%;
     z-index: 5;
-    border-radius: 12px;
+    border-radius: calc(1 * 12 * var(--u));
     overflow: hidden;
-    border: 1px solid var(--panel-border);
-    box-shadow: inset 0 1px 0 var(--panel-highlight), 0 6px 24px rgba(0, 0, 0, 0.6);
+    border: calc(0.08333 * 12 * var(--u)) solid var(--panel-border);
+    box-shadow: inset 0 calc(0.08333 * 12 * var(--u)) 0 var(--panel-highlight), 0 calc(0.5 * 12 * var(--u)) calc(2 * 12 * var(--u)) rgba(0, 0, 0, 0.6);
 }
 
 #arrow {
     position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
     width: auto;
-    height: auto;
+    height: 0;
     animation: rotate 15s linear infinite;
     display: block;
     user-select: none;
@@ -26,15 +29,12 @@
 #container {
     display: none;
     position: absolute;
-    width: auto;
-    height: auto;
-    top: 38%;
-    left: 49%;
-    transform: scale(1.2);
+    left: 0;
+    top: 0;
 }
 
 .slides {
-    width: 300px;
+    width: calc(25 * 12 * var(--u));
     height: auto;
     top: 0%;
     z-index: 3;
@@ -55,12 +55,12 @@
 
 #inspekcjaDane {
     display: none;
-    height: 400px;
-    width: 200px;
-    font-size: 12px;
-    padding: 2px;
-    border-radius: 10px;
-    line-height: 14px;
+    height: calc(33.33 * 12 * var(--u));
+    width: calc(16.67 * 12 * var(--u));
+    font-size: calc(1 * 12 * var(--u));
+    padding: calc(0.1667 * 12 * var(--u));
+    border-radius: calc(0.8333 * 12 * var(--u));
+    line-height: calc(1.167 * 12 * var(--u));
     background-color: rgb(109, 32, 32);
     top: 40%;
     left: 20%;
@@ -74,16 +74,16 @@
 }
 
 #zdjecia {
-    width: 300px;
-    height: 240px;
-    border-radius: 10px;
+    width: calc(25 * 12 * var(--u));
+    height: calc(20 * 12 * var(--u));
+    border-radius: calc(0.8333 * 12 * var(--u));
     justify-content: center;
     display: flex;
 }
 
 .zdjecia {
     width: auto;
-    height: 240px;
+    height: calc(20 * 12 * var(--u));
     left: 50%;
     background-repeat: repeat;
     -webkit-mask-image: linear-gradient(rgba(0, 0, 0, 1) 85%, rgba(0, 0, 0, 0) 100%);
@@ -96,13 +96,13 @@
 }
 
 .zdjecia:hover {
-    height: 260px;
+    height: calc(21.67 * 12 * var(--u));
     cursor: pointer;
 }
 
 #informacje {
-    padding: 7px;
-    margin-top: 2px;
+    padding: calc(0.5833 * 12 * var(--u));
+    margin-top: calc(0.1667 * 12 * var(--u));
 }
 
 #podZdjeciem {
@@ -111,8 +111,8 @@
     --card-accent-glow: rgba(255, 190, 210, 0.22);
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
-    padding: 0 6px;
+    gap: calc(0.5 * 12 * var(--u));
+    padding: 0 calc(0.5 * 12 * var(--u));
     box-sizing: border-box;
 }
 
@@ -123,14 +123,14 @@
     overflow: hidden;
     display: flex;
     justify-content: center;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: calc(0.8333 * 12 * var(--u));
+    border: calc(0.08333 * 12 * var(--u)) solid rgba(255, 255, 255, 0.14);
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(0, 0, 0, 0.25) 100%),
         rgba(15, 12, 18, 0.35);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.35);
+        inset 0 calc(0.08333 * 12 * var(--u)) 0 rgba(255, 255, 255, 0.08),
+        0 calc(0.1667 * 12 * var(--u)) calc(0.6667 * 12 * var(--u)) rgba(0, 0, 0, 0.35);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -140,8 +140,8 @@
     top: 0;
     left: 12%;
     right: 12%;
-    height: 2px;
-    border-radius: 0 0 2px 2px;
+    height: calc(0.1667 * 12 * var(--u));
+    border-radius: 0 0 calc(0.1667 * 12 * var(--u)) calc(0.1667 * 12 * var(--u));
     background: linear-gradient(90deg, transparent, var(--card-accent), transparent);
     opacity: 0.55;
     pointer-events: none;
@@ -151,9 +151,9 @@
 #podZdjeciem > div:hover {
     border-color: var(--card-accent-border);
     box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.16),
-        0 0 14px var(--card-accent-glow),
-        0 2px 12px rgba(0, 0, 0, 0.45);
+        inset 0 calc(0.08333 * 12 * var(--u)) 0 rgba(255, 255, 255, 0.16),
+        0 0 calc(1.167 * 12 * var(--u)) var(--card-accent-glow),
+        0 calc(0.1667 * 12 * var(--u)) calc(1 * 12 * var(--u)) rgba(0, 0, 0, 0.45);
 }
 
 #podZdjeciem > div:hover::before {
@@ -165,27 +165,27 @@
 #nameBox,
 #idBox {
     align-items: center;
-    height: 40px;
-    font-size: 25px;
+    height: calc(3.333 * 12 * var(--u));
+    font-size: calc(2.083 * 12 * var(--u));
 }
 
 #nameBox p,
 #idBox p {
     margin: 0;
-    text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+    text-shadow: 0 0 calc(1 * 12 * var(--u)) rgba(255, 255, 255, 0.6);
 }
 
 #diamBox,
 #massBox {
-    height: 60px;
-    font-size: 12px;
-    margin-top: 15px;
+    height: calc(5 * 12 * var(--u));
+    font-size: calc(1 * 12 * var(--u));
+    margin-top: calc(1.25 * 12 * var(--u));
 }
 
 #ressBox,
 #bulkBox {
-    height: 120px;
-    font-size: 12px;
+    height: calc(10 * 12 * var(--u));
+    font-size: calc(1 * 12 * var(--u));
 }
 
 #diamBox p,
@@ -195,27 +195,27 @@
     display: flex;
     justify-content: center;
     position: absolute;
-    text-shadow: 0 0 14px rgba(255, 255, 255, 0.55);
+    text-shadow: 0 0 calc(1.167 * 12 * var(--u)) rgba(255, 255, 255, 0.55);
 }
 
 #diam,
 #mass,
 #resources,
 #usefulData {
-    margin-top: 10px;
-    font-size: 10px;
+    margin-top: calc(0.8333 * 12 * var(--u));
+    font-size: calc(0.8333 * 12 * var(--u));
     letter-spacing: 0.06em;
     opacity: 0.75;
     text-shadow: none;
 }
 
 #informacjeDiam {
-    margin-top: 31px;
+    margin-top: calc(2.583 * 12 * var(--u));
 }
 
 #informacjeMass {
-    margin-top: 31px;
-    font-size: 11px;
+    margin-top: calc(2.583 * 12 * var(--u));
+    font-size: calc(0.9167 * 12 * var(--u));
 }
 
 #informacjeRess {
@@ -223,25 +223,25 @@
     position: absolute;
     transform: translateY(-50%);
     text-align: center;
-    font-size: 15px;
+    font-size: calc(1.25 * 12 * var(--u));
     margin-top: 0;
 }
 
 #informacjeOrbitalPeriod {
-    margin-top: 31px;
-    font-size: 13px;
+    margin-top: calc(2.583 * 12 * var(--u));
+    font-size: calc(1.083 * 12 * var(--u));
     text-align: center;
 }
 
 #informacjeTemperature {
-    margin-top: 61px;
-    font-size: 13px;
+    margin-top: calc(5.083 * 12 * var(--u));
+    font-size: calc(1.083 * 12 * var(--u));
     text-align: center;
 }
 
 #informacjeAxialTilt {
-    margin-top: 91px;
-    font-size: 13px;
+    margin-top: calc(7.583 * 12 * var(--u));
+    font-size: calc(1.083 * 12 * var(--u));
     text-align: center;
 }
 
@@ -284,7 +284,7 @@
 #bulkBoxImg {
     background-image: url("/textures/bulk.webp");
     background-size: cover;
-    background-position-x: 5px;
+    background-position-x: calc(0.4167 * 12 * var(--u));
 }
 
 #svgLeft {
@@ -292,11 +292,11 @@
     top: 20%;
     left: 5%;
     transform: rotate(180deg);
-    -webkit-box-shadow: -1px -5px 15px #41465b, 5px 5px 15px #41465b,
-        inset 5px 5px 10px #212121, inset -5px -5px 10px #212121;
-    box-shadow: -1px -5px 15px #41465b, 1px 5px 15px #41465b,
-        inset 5px 5px 10px #212121, inset -5px -5px 10px #212121;
-    border-radius: 20px;
+    -webkit-box-shadow: calc(-1 * 0.08333 * 12 * var(--u)) calc(-1 * 0.4167 * 12 * var(--u)) calc(1.25 * 12 * var(--u)) #41465b, calc(0.4167 * 12 * var(--u)) calc(0.4167 * 12 * var(--u)) calc(1.25 * 12 * var(--u)) #41465b,
+        inset calc(0.4167 * 12 * var(--u)) calc(0.4167 * 12 * var(--u)) calc(0.8333 * 12 * var(--u)) #212121, inset calc(-1 * 0.4167 * 12 * var(--u)) calc(-1 * 0.4167 * 12 * var(--u)) calc(0.8333 * 12 * var(--u)) #212121;
+    box-shadow: calc(-1 * 0.08333 * 12 * var(--u)) calc(-1 * 0.4167 * 12 * var(--u)) calc(1.25 * 12 * var(--u)) #41465b, calc(0.08333 * 12 * var(--u)) calc(0.4167 * 12 * var(--u)) calc(1.25 * 12 * var(--u)) #41465b,
+        inset calc(0.4167 * 12 * var(--u)) calc(0.4167 * 12 * var(--u)) calc(0.8333 * 12 * var(--u)) #212121, inset calc(-1 * 0.4167 * 12 * var(--u)) calc(-1 * 0.4167 * 12 * var(--u)) calc(0.8333 * 12 * var(--u)) #212121;
+    border-radius: calc(1.667 * 12 * var(--u));
     z-index: 7;
 }
 
@@ -304,11 +304,11 @@
     position: absolute;
     top: 20%;
     right: 5%;
-    -webkit-box-shadow: -1px -5px 15px #41465b, 5px 5px 15px #41465b,
-        inset 5px 5px 10px #212121, inset -5px -5px 10px #212121;
-    box-shadow: -1px -5px 15px #41465b, 1px 5px 15px #41465b,
-        inset 5px 5px 10px #212121, inset -5px -5px 10px #212121;
-    border-radius: 20px;
+    -webkit-box-shadow: calc(-1 * 0.08333 * 12 * var(--u)) calc(-1 * 0.4167 * 12 * var(--u)) calc(1.25 * 12 * var(--u)) #41465b, calc(0.4167 * 12 * var(--u)) calc(0.4167 * 12 * var(--u)) calc(1.25 * 12 * var(--u)) #41465b,
+        inset calc(0.4167 * 12 * var(--u)) calc(0.4167 * 12 * var(--u)) calc(0.8333 * 12 * var(--u)) #212121, inset calc(-1 * 0.4167 * 12 * var(--u)) calc(-1 * 0.4167 * 12 * var(--u)) calc(0.8333 * 12 * var(--u)) #212121;
+    box-shadow: calc(-1 * 0.08333 * 12 * var(--u)) calc(-1 * 0.4167 * 12 * var(--u)) calc(1.25 * 12 * var(--u)) #41465b, calc(0.08333 * 12 * var(--u)) calc(0.4167 * 12 * var(--u)) calc(1.25 * 12 * var(--u)) #41465b,
+        inset calc(0.4167 * 12 * var(--u)) calc(0.4167 * 12 * var(--u)) calc(0.8333 * 12 * var(--u)) #212121, inset calc(-1 * 0.4167 * 12 * var(--u)) calc(-1 * 0.4167 * 12 * var(--u)) calc(0.8333 * 12 * var(--u)) #212121;
+    border-radius: calc(1.667 * 12 * var(--u));
     z-index: 7;
 }
 

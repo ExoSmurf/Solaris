@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="Solaris – interactive 3D solar system portfolio. Best experienced on a laptop or PC." />
+	<link rel="preload" href="/textures/font/F77MinecraftRegular-0VYv.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="icon" href="textures/EarthNull.ico" type="image/x-icon">
+	<title>Solaris - Mobile</title>
+	<style>
+		@font-face {
+			font-family: Minecraft;
+			src: url('/textures/font/F77MinecraftRegular-0VYv.woff2') format('woff2');
+			font-display: swap;
+		}
+
+		:root {
+			--panel-bg: rgba(20, 20, 24, 0.9);
+			--panel-border: #404c5d;
+			--text-muted: #a1a1a1;
+			--accent: #a259ff;
+			--accent-deep: #8332ed;
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		html,
+		body {
+			margin: 0;
+			min-height: 100%;
+			overflow-x: hidden;
+		}
+
+		body {
+			font-family: Minecraft, system-ui, sans-serif;
+			color: #fff;
+			background: radial-gradient(ellipse at 50% 0%, #2a1650 0%, #0b0a12 60%, #000 100%);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 100vh;
+			padding: 16px;
+		}
+
+		main {
+			width: 100%;
+			max-width: 420px;
+			background: var(--panel-bg);
+			border: 2px solid var(--panel-border);
+			border-radius: 12px;
+			padding: 28px 22px;
+			box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+			text-align: center;
+		}
+
+		h1 {
+			margin: 0 0 12px;
+			font-size: 2.2rem;
+			font-weight: normal;
+			color: var(--accent);
+			text-shadow: 0 0 12px rgba(162, 89, 255, 0.55);
+		}
+
+		p {
+			margin: 0 0 14px;
+			font-size: 1rem;
+			line-height: 1.5;
+			color: var(--text-muted);
+			overflow-wrap: break-word;
+		}
+
+		.notice {
+			color: #fff;
+		}
+
+		.contact {
+			margin-top: 22px;
+			padding-top: 18px;
+			border-top: 1px solid var(--panel-border);
+		}
+
+		.contact a {
+			color: var(--accent);
+			word-break: break-all;
+		}
+
+		.button {
+			display: inline-block;
+			margin-top: 18px;
+			padding: 12px 18px;
+			border: none;
+			border-radius: 8px;
+			background: var(--accent-deep);
+			color: #fff;
+			font-family: inherit;
+			font-size: 1rem;
+			cursor: pointer;
+		}
+
+		.button:active {
+			transform: scale(0.98);
+		}
+
+		#gallery {
+			position: fixed;
+			inset: 0;
+			display: none;
+			flex-direction: column;
+			background: rgba(5, 5, 8, 0.97);
+			z-index: 10;
+		}
+
+		#gallery.open {
+			display: flex;
+		}
+
+		#gallery header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 14px 16px;
+			border-bottom: 1px solid var(--panel-border);
+		}
+
+		#gallery h2 {
+			margin: 0;
+			font-size: 1.4rem;
+			font-weight: normal;
+			color: var(--accent);
+		}
+
+		#gallery .button {
+			margin: 0;
+			padding: 8px 14px;
+		}
+
+		#grid {
+			flex: 1;
+			overflow-y: auto;
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			align-content: flex-start;
+			gap: 10px;
+			padding: 12px 12px 24px;
+		}
+
+		#grid img {
+			display: block;
+			height: 150px;
+			width: auto;
+			max-width: 100%;
+			object-fit: contain;
+			border-radius: 8px;
+			border: 1px solid var(--panel-border);
+			background: #111;
+			cursor: zoom-in;
+			user-select: none;
+			-webkit-user-drag: none;
+		}
+
+		#lightbox {
+			position: fixed;
+			inset: 0;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			background: rgba(0, 0, 0, 0.94);
+			z-index: 20;
+			overflow: auto;
+		}
+
+		#lightbox.open {
+			display: flex;
+		}
+
+		#lightbox img {
+			max-width: 100vw;
+			max-height: 100vh;
+			width: auto;
+			height: auto;
+			touch-action: pinch-zoom;
+		}
+
+		#lightbox .button {
+			position: fixed;
+			top: 12px;
+			right: 12px;
+			margin: 0;
+		}
+		</style>
+</head>
+
+<body>
+	<main>
+		<h1>Solaris</h1>
+		<p class="notice">Welcome! This interactive 3D solar system is built for a laptop or PC, where you can fly between planets and explore the projects.</p>
+		<p>Here you can still look through the gallery of all planets.</p>
+
+		<section class="contact">
+			<p>If you'd like to chat about your project, get an opinion or help, feel free to contact me on Discord:</p>
+			<p><strong>0x024_</strong></p>
+			<p>Or join my server: <a href="https://discord.gg/ATgG96j2z6">discord.gg/ATgG96j2z6</a></p>
+		</section>
+
+		<button class="button" id="openGallery" type="button">Gallery</button>
+	</main>
+
+	<section id="gallery" aria-label="Gallery">
+		<header>
+			<h2>Gallery</h2>
+			<button class="button" id="closeGallery" type="button">Close</button>
+		</header>
+		<div id="grid">
+			<img src="textures/images/cares.webp" alt="Gallery image 1" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/caresOther.webp" alt="Gallery image 2" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/mesa.webp" alt="Gallery image 3" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/mesas.webp" alt="Gallery image 4" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/mesass.webp" alt="Gallery image 5" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/preview.webp" alt="Gallery image 6" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/1kx1khonor2.webp" alt="Gallery image 7" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/323.webp" alt="Gallery image 8" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/Tython.webp" alt="Gallery image 9" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/def.webp" alt="Gallery image 10" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/orax.webp" alt="Gallery image 11" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/explo.webp" alt="Gallery image 12" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/key.webp" alt="Gallery image 13" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/cany.webp" alt="Gallery image 14" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/Nether.webp" alt="Gallery image 15" loading="lazy" decoding="async" draggable="false">
+			<img src="textures/images/volcano.webp" alt="Gallery image 16" loading="lazy" decoding="async" draggable="false">
+		</div>
+	</section>
+
+	<div id="lightbox" aria-label="Image preview">
+		<img id="lightboxImg" alt="" draggable="false">
+		<button class="button" id="closeLightbox" type="button">Close</button>
+	</div>
+
+	<script>
+		const gallery = document.getElementById('gallery');
+		document.getElementById('openGallery').addEventListener('click', () => gallery.classList.add('open'));
+		document.getElementById('closeGallery').addEventListener('click', () => gallery.classList.remove('open'));
+		const lightbox = document.getElementById('lightbox');
+		const lightboxImg = document.getElementById('lightboxImg');
+		document.querySelectorAll('#grid img').forEach((img) => img.addEventListener('click', () => {
+			lightboxImg.src = img.src;
+			lightbox.classList.add('open');
+		}));
+		document.getElementById('closeLightbox').addEventListener('click', () => lightbox.classList.remove('open'));
+	</script>
+</body>
+
+</html>

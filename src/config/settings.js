@@ -75,8 +75,8 @@ export const hud = {
         searchJitterRate: 6,
     },
     hover: {
-        padding: 1.6,
-        minSize: 40,
+        padding: 1.15,
+        minSize: 28,
         startScale: 1,
         clickTolerance: 6,
         minHitRadius: 28,

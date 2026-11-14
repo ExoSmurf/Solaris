@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 export default defineConfig(({ command }) => ({
@@ -15,6 +16,10 @@ export default defineConfig(({ command }) => ({
         target: 'es2022',
         cssMinify: 'lightningcss',
         rollupOptions: {
+            input: {
+                main: fileURLToPath(new URL('./index.html', import.meta.url)),
+                mobile: fileURLToPath(new URL('./mobile.html', import.meta.url)),
+            },
             output: {
                 manualChunks(id) {
                     if (id.includes('node_modules/three')) return 'vendor-three';

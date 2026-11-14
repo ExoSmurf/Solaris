@@ -1,0 +1,467 @@
+{
+  "planetySun": [
+    {
+      "planeta": "sun",
+      "src": "/models/sun/sun.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 0.01
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": null,
+        "y": null,
+        "z": null,
+        "rotation": null
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "Venus",
+      "src": "/models/Venus/Venus.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 3,
+        "y": null,
+        "z": null,
+        "rotation": 0.01
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.00035
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "earth",
+      "src": "/models/earth/earth.gltf",
+      "blok": {
+        "kostka": null,
+        "x": -9,
+        "y": null,
+        "z": null,
+        "rotation": 0.01
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": null,
+        "z": null,
+        "rotation": 0.005
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "moon",
+      "src": "/models/moon/moon.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 1,
+        "y": null,
+        "z": null,
+        "rotation": 0.02
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": -0.001
+      },
+      "isMoon": true
+    },
+    {
+      "planeta": "saturn",
+      "src": "/models/saturn/saturn.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 17,
+        "y": null,
+        "z": null,
+        "rotation": 0.01
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.0008
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "pluto",
+      "src": "/models/pluto/pluto.gltf",
+      "blok": {
+        "kostka": null,
+        "x": -24,
+        "y": null,
+        "z": null,
+        "rotation": 0.01
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.0005
+      },
+      "isMoon": false
+    }
+  ],
+  "planetyBlackHole": [
+    {
+      "planeta": "BlackHole",
+      "src": "/models/blackhole/blackhole.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "rotation": 0.001
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": null,
+        "y": null,
+        "z": null,
+        "rotation": null
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "pyrox",
+      "src": "/models/pyrox/pyrox.gltf",
+      "blok": {
+        "kostka": null,
+        "x": null,
+        "y": null,
+        "z": -5,
+        "rotation": 0.005
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": -0.001
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "pyroxBlob",
+      "src": "/models/pyrox/pyroxBlob.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 0.5,
+        "y": null,
+        "z": null,
+        "rotation": 0.005
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.001
+      },
+      "isMoon": true
+    },
+    {
+      "planeta": "pyroxBlob2",
+      "src": "/models/pyrox/pyroxBlob.gltf",
+      "blok": {
+        "kostka": null,
+        "x": -0.6,
+        "y": null,
+        "z": -0.7,
+        "rotation": 0.005
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.001
+      },
+      "isMoon": true
+    },
+    {
+      "planeta": "pyroxBlob3",
+      "src": "/models/pyrox/pyroxBlob.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 0.6,
+        "y": null,
+        "z": -0.7,
+        "rotation": 0.002
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": -0.0001
+      },
+      "isMoon": true
+    },
+    {
+      "planeta": "pyroxBlob4",
+      "src": "/models/pyrox/pyroxBlob.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 0.4,
+        "y": null,
+        "z": 0.8,
+        "rotation": 0.001
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.003
+      },
+      "isMoon": true
+    },
+    {
+      "planeta": "mirethul",
+      "src": "/models/Mirethul/Mirethul.gltf",
+      "blok": {
+        "kostka": null,
+        "x": -8,
+        "y": null,
+        "z": null,
+        "rotation": 0.003
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.0001
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "aerolith",
+      "src": "/models/Aerolith/aerolith.gltf",
+      "blok": {
+        "kostka": null,
+        "x": 11,
+        "y": null,
+        "z": null,
+        "rotation": 0.005
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.0003
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "skarnis",
+      "src": "/models/skarnis/skarnis.gltf",
+      "blok": {
+        "kostka": null,
+        "x": null,
+        "y": null,
+        "z": 15,
+        "rotation": 0
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": 0,
+        "y": 0,
+        "z": null,
+        "rotation": 0.001
+      },
+      "isMoon": false
+    },
+    {
+      "planeta": "neptune",
+      "src": "/models/neptune/neptune.gltf",
+      "blok": {
+        "kostka": null,
+        "x": null,
+        "y": 0,
+        "z": 19,
+        "rotation": 0.007
+      },
+      "blokObj": {
+        "kostka": null,
+        "x": null,
+        "y": null,
+        "z": null,
+        "rotation": 0.0002
+      },
+      "isMoon": false
+    }
+  ],
+  "planetsInfo": [
+    {
+      "name": "Sun",
+      "images": []
+    },
+    {
+      "name": "Venus",
+      "informacje": "Planet Venus is a rugged, orange-hued world known for its vast Gravel Wastes and Granite Highlands. The Gravel Wastes are expansive, unstable areas filled with gravel, creating a challenging terrain with frequent collapses.These biomes are ideal for gathering flint but are hazardous to navigate. The Granite Highlands feature towering granite cliffs and plateaus, offering an abundance of granite and occasional iron and copper veins embedded in the rock. The thin atmosphere casts a dusty haze over the landscape, giving the planet a unique, eerie appearance that adds to the adventurous exploration and resource-gathering experience.",
+      "id": "VE-57",
+      "informacjeDiam": "8,507 Blocks",
+      "informacjeMass": "760,200 kBl",
+      "informacjeRess": "Gold,<br>Sand,<br>&nbsp;Lumicite*",
+      "informacjeOrbitalPeriod": "Orbital Period:<br>462 Days",
+      "informacjeTemperature": "Temperature:<br>352°C / 665.6°F",
+      "informacjeAxialTilt": "Axial Tilt:<br>3°",
+      "images": [
+        "cares",
+        "caresOther",
+        "mesa",
+        "mesas",
+        "mesass"
+      ]
+    },
+    {
+      "name": "Earth",
+      "informacje": "Planet Earth is a mysterious, cube-shaped planet orbiting a distant star. Its surface is a patchwork of biomes, from dense forests to vast deserts, each teeming with blocky life. The planet's core is a giant, pulsating redstone crystal, believed to power the strange gravity that keeps everything in its place. Rich in resources like iron, gold, and diamonds, Minecraft Earth is a miner's paradise. The planet's atmosphere is thick with pixelated clouds, and the sky shifts colors in a mesmerizing, digital pattern. Rumors suggest ancient structures and hidden treasures lie deep underground, waiting to be discovered.",
+      "id": "ER-23",
+      "informacjeDiam": "9,120 Blocks",
+      "informacjeMass": "921,090 kBl",
+      "informacjeRess": "Diamonds,<br>Soils,<br>&nbsp;Velvetvine*,<br>Redstone ",
+      "informacjeOrbitalPeriod": "Orbital Period:<br>365.25 days",
+      "informacjeTemperature": "Temperature:<br>15°C / 59°F",
+      "informacjeAxialTilt": "Axial Tilt: <br>23.5°",
+      "images": [
+        "preview",
+        "1kx1khonor2",
+        "323",
+        "Tython",
+        "def",
+        "orax",
+        "explo",
+        "key"
+      ]
+    },
+    {
+      "name": "Moon"
+    },
+    {
+      "name": "Saturn",
+      "informacje": "SA-42, commonly known as Saturn, is a mesmerizing gas giant, renowned for its stunning rings of ice and rock that encircle the planet in a beautiful display. The upper atmosphere of Saturn is a dynamic, swirling mass of yellow, orange, and brown clouds, where floating islands of solid matter drift amidst the gaseous layers. Despite its harsh and turbulent environment, Saturn is rich in rare and valuable resources. Explorers can find Hydrocrystals floating within the atmosphere, Gasblossom plants glowing in the upper layers, and Etherium Ore embedded in the drifting islands. The planet’s frequent storms charge Stormstone with immense energy, while Ring Ice harvested from the rings is sought after for advanced crafting. Saturn’s unique environment offers a wealth of exotic materials, making it a challenging yet rewarding destination for adventurers.",
+      "id": "SA-42",
+      "informacjeDiam": "83,192 Blocks",
+      "informacjeMass": "12,291,630 kBl",
+      "informacjeRess": "&nbsp;Ring Ice*,<br>Terracota,<br>Gases,<br>&nbsp;Hydrocrystals",
+      "informacjeOrbitalPeriod": "Orbital Period:<br10,756 days",
+      "informacjeTemperature": "Temperature:<br>-178°C / -288.4",
+      "informacjeAxialTilt": "Axial Tilt: <br>26.7°",
+      "images": []
+    },
+    {
+      "name": "Pluto",
+      "informacje": "PL-09, commonly known as Pluto, is a remote and desolate dwarf planet, drifting at the edge of the solar system with a wide, elliptical orbit that spans centuries. Its frozen surface is a landscape of jagged ice cliffs, steep dirt hills, and deep impact craters, all shrouded in a dim, bluish twilight. Despite its isolation and extreme cold, Pluto harbors rare and valuable materials beneath its icy crust. Explorers can find Froststone, a unique mineral that glows faintly in the dark, and Ice Crystals, which are essential for crafting advanced tools and equipment. The planet's surface is also rich in Frozen Gas deposits, which can be harvested for fuel and energy. The harsh conditions and sparse resources make PL-09 a challenging yet intriguing destination for adventurers seeking to uncover its secrets.",
+      "id": "PL-09",
+      "informacjeDiam": "7,370 Blocks",
+      "informacjeMass": "1,310,000 kBl",
+      "informacjeRess": "&nbsp;Froststone*,<br>&nbsp;Ice Crystals*,<br>Frozen Gas,<br>Stones",
+      "informacjeOrbitalPeriod": "Orbital Period:<br>732 days",
+      "informacjeTemperature": "Temperature:<br>-223°C / -369.4",
+      "informacjeAxialTilt": "Axial Tilt: <br>12.5°",
+      "images": [
+        "cany"
+      ]
+    },
+    {
+      "name": "BlackHole",
+      "images": []
+    },
+    {
+      "name": "Pyrox",
+      "informacje": "Planet Pyrox is a desolate, rocky world characterized by its harsh, volcanic landscape and extreme temperatures. The surface is dotted with active volcanoes, molten lava rivers, and jagged rock formations. The atmosphere is thin and filled with ash, creating a dim, reddish haze that obscures the sky. Despite its inhospitable environment, Pyrox is rich in valuable resources such as Pyroxium Ore, a rare mineral used in advanced technology and crafting. The planet's extreme conditions make it a challenging but rewarding destination for resource gathering and exploration.",
+      "id": "PY-01",
+      "informacjeDiam": "6,371 Blocks",
+      "informacjeMass": "1,090,230 kBl",
+      "informacjeRess": "&nbsp;Pyroxium Ore*,<br>Basalt,<br>Obsidian",
+      "informacjeOrbitalPeriod": "Orbital Period:<br>102 days",
+      "informacjeTemperature": "Temperature:<br>300°C / 572°F",
+      "informacjeAxialTilt": "Axial Tilt: <br>23.5°",
+      "images": [
+        "Nether",
+        "volcano"
+      ]
+    },
+    {
+      "name": "Pyrox Blob",
+      "images": []
+    },
+    {
+      "name": "Pyrox Blob",
+      "images": []
+    },
+    {
+      "name": "Pyrox Blob",
+      "images": []
+    },
+    {
+      "name": "Pyrox Blob",
+      "images": []
+    },
+    {
+      "name": "Mirethul",
+      "informacje": "Planet Mirethul is a mysterious, swampy world characterized by its dense, fog-laden atmosphere and treacherous terrain. The surface is covered in vast marshlands, with stagnant pools of murky water and thick vegetation that obscures visibility. Mirethul's unique ecosystem is home to a variety of strange and exotic creatures, adapted to the planet's harsh conditions. The atmosphere is rich in Mirethium Gas, a valuable resource used in advanced technology and crafting. Despite its inhospitable environment, Mirethul offers opportunities for exploration and resource gathering for those brave enough to navigate its dangers.",
+      "id": "MI-22",
+      "informacjeDiam": "5,001 Blocks",
+      "informacjeMass": "820,070 kBl",
+      "informacjeRess": "&nbsp;Mirethium Gas*,<br>Swamp Soil,<br>Marshwood",
+      "informacjeOrbitalPeriod": "Orbital Period:<br>729 days",
+      "informacjeTemperature": "Temperature:<br>25°C / 77°F",
+      "informacjeAxialTilt": "Axial Tilt: <br>15°",
+      "images": []
+    },
+    {
+      "name": "Aerolith",
+      "informacje": "Planet Aerolith is a floating, gaseous world characterized by its ethereal atmosphere and unique, cloud-like terrain. The surface is composed of dense clouds and gaseous formations that shift and change shape, creating a surreal and ever-changing landscape. Aerolith's atmosphere is rich in Aerolithium Gas, valuable to some, scary to the rest gas that allows user to shapeshift. The planet's low gravity allows for the formation of floating islands made of solidified gas, which can be explored for rare minerals and resources. Despite its inhospitable environment, Aerolith offers opportunities for exploration and resource gathering for those willing to brave its challenges.",
+      "id": "AE-33",
+      "informacjeDiam": "19,502 Blocks",
+      "informacjeMass": "600,000 kBl",
+      "informacjeRess": "&nbsp;Aerolithium Gas*,<br>Cloudstone,<br>Gaseous Crystals",
+      "informacjeOrbitalPeriod": "Orbital Period:<br>365 days",
+      "informacjeTemperature": "Temperature:<br>-10°C / 14°F",
+      "informacjeAxialTilt": "Axial Tilt: <br>10°",
+      "images": []
+    },
+    {
+      "name": "Skarnis",
+      "informacje": "Planet Skarnis is a rocky, mountainous world characterized by its rugged terrain and harsh climate. The surface is dominated by towering mountains, deep valleys, and rocky outcrops, creating a challenging environment for exploration. Skarnis is rich in valuable minerals and ores, including Skarnite, a rare resource used in spaceship technology. The planet's atmosphere is thin and cold, with frequent storms that can make navigation difficult. The far backside of the planet is perpetually shadowed, creating a frigid and inhospitable environment. Despite its inhospitable conditions, Skarnis offers opportunities for resource gathering and adventure for those willing to brave its challenges.",
+      "id": "SK-44",
+      "informacjeDiam": "29,345 Blocks",
+      "informacjeMass": "1,234,567 kBl",
+      "informacjeRess": "&nbsp;Skarnite*,<br>Rocky Soil,<br>Mountain Crystals",
+      "informacjeOrbitalPeriod": "Orbital Period:<br>400 days",
+      "informacjeTemperature": "Temperature:<br>5°C / 41°F",
+      "informacjeAxialTilt": "Axial Tilt: <br>20°",
+      "images": []
+    },
+    {
+      "name": "Neptune",
+      "informacje": "Planet Neptune is a distant, icy world characterized by its frigid temperatures and vast frozen landscapes. The surface is covered in thick layers of ice and snow, with towering ice formations and deep crevasses. Neptune's atmosphere is thin and cold, with strong winds that whip across the surface. Neptune is rich in valuable resources such as Ice Crystals. The planet's unique environment might soon be researchable, so far the atmospheric pressure is higher than deepest oceans of earth.",
+      "id": "NE-55",
+      "informacjeDiam": "7,021 Blocks",
+      "informacjeMass": "1,500,000 kBl",
+      "informacjeRess": "&nbsp;Ice Crystals*,<br>Frozen Soil,<br>Snowy Rocks",
+      "informacjeOrbitalPeriod": "Orbital Period:<br>165 years",
+      "informacjeTemperature": "Temperature:<br>-214°C / -353°F",
+      "informacjeAxialTilt": "Axial Tilt: <br>28°",
+      "images": []
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 dialog::backdrop {
     background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(calc(0.25 * 12 * var(--u)));
 }
 
 dialog[open] {
@@ -69,11 +69,11 @@ dialog.closing::backdrop {
 #svgRight2,
 #svgLeft2 {
     box-sizing: content-box;
-    padding: 6px;
+    padding: calc(0.5 * 12 * var(--u));
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--panel-border);
-    box-shadow: inset 0 1px 0 var(--panel-highlight);
+    border: calc(0.08333 * 12 * var(--u)) solid var(--panel-border);
+    box-shadow: inset 0 calc(0.08333 * 12 * var(--u)) 0 var(--panel-highlight);
     cursor: pointer;
     transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
@@ -85,7 +85,7 @@ dialog.closing::backdrop {
 #svgLeft2:hover {
     background: var(--accent-soft);
     border-color: rgba(162, 89, 255, 0.6);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), var(--accent-glow);
+    box-shadow: inset 0 calc(0.08333 * 12 * var(--u)) 0 rgba(255, 255, 255, 0.2), var(--accent-glow);
 }
 
 #svgRight2 path,
@@ -98,9 +98,9 @@ dialog.closing::backdrop {
 #naviHoldersMaster,
 #overdriveNavi {
     background-color: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    box-shadow: inset 0 1px 0 var(--panel-highlight), var(--panel-shadow);
-    backdrop-filter: blur(6px);
+    border: calc(0.08333 * 12 * var(--u)) solid var(--panel-border);
+    box-shadow: inset 0 calc(0.08333 * 12 * var(--u)) 0 var(--panel-highlight), var(--panel-shadow);
+    backdrop-filter: blur(calc(0.5 * 12 * var(--u)));
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -35,6 +35,9 @@ desktop.ini
 .claude/
 
 # tests
-tests/
 test-results/
-playwright*
+playwright-report/
+playwright/.cache/
+
+# coverage
+coverage/

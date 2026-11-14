@@ -3,6 +3,9 @@
 
 <head>
 	<meta charset="UTF-8" />
+	<script>
+		if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) location.replace("mobile.html");
+	</script>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="description" content="Solaris – interactive 3D solar system portfolio. Fly between planets to explore projects, galleries and contact info." />
 	<link rel="preload" href="/textures/loading-poster.webp" as="image" fetchpriority="high">
@@ -98,12 +101,12 @@
 	<div id="inspekcja">
 		<div id="zdjecia">
 			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="svgArrow" id="svgRight"
-				onclick="nextImg(1)">
+				data-action="slide-next">
 				<path
 					d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z" />
 			</svg>
 			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="svgArrow" id="svgLeft"
-				onclick="prevImg(1)">
+				data-action="slide-prev">
 				<path
 					d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z" />
 			</svg>
@@ -120,12 +123,12 @@
 
 			<div id="naviHolders">
 				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="svgArrow" id="svgRight2"
-					onclick="nextImg(1)">
+					data-action="slide-next">
 					<path
 						d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z" />
 				</svg>
 				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-					onclick="dialClose()" class="svgArrow" id="svgClose">
+					data-action="dialog-close" class="svgArrow" id="svgClose">
 					<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
 					<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
 					<g id="SVGRepo_iconCarrier">
@@ -136,7 +139,7 @@
 				</svg>
 
 				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" class="svgArrow" id="svgLeft2"
-					onclick="prevImg(1)">
+					data-action="slide-prev">
 					<path
 						d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z" />
 				</svg>
@@ -209,7 +212,7 @@
 			<img src="textures/images/avatar/ExoRendersmall.webp" alt="Avatar" id="avatar" draggable="false" loading="lazy" fetchpriority="low" decoding="async">
 		</div>
 		<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-			onclick="dialCloseContact()" class="svgArrow" id="svgCloseContact">
+			data-action="contact-close" class="svgArrow" id="svgCloseContact">
 			<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
 			<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
 			<g id="SVGRepo_iconCarrier">
@@ -225,7 +228,7 @@
 			<img id="galleryImageDialogImg" src="" alt="Gallery Preview" draggable="false" loading="lazy">
 			<div id="naviHoldersDialogImg">
 				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-					onclick="dialCloseGalleryImg()" class="svgArrow" id="svgCloseGallery">
+					data-action="gallery-image-close" class="svgArrow" id="svgCloseGallery">
 					<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
 					<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
 					<g id="SVGRepo_iconCarrier">
@@ -242,7 +245,7 @@
 		<div id="naviHoldersMaster">
 			<div id="overdriveNavi">
 				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-					onclick="dialCloseGallery()" class="svgArrow" id="svgCloseGallery">
+					data-action="gallery-close" class="svgArrow" id="svgCloseGallery">
 					<g id="SVGRepo_bgCarrier" stroke-width="0"></g>
 					<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
 					<g id="SVGRepo_iconCarrier">

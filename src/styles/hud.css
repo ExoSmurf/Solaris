@@ -1,12 +1,12 @@
 #cameraStatus {
     position: fixed;
-    top: 16px;
-    right: 16px;
+    top: calc(1.333 * 12 * var(--u));
+    right: calc(1.333 * 12 * var(--u));
     z-index: 20;
     margin: 0;
-    padding: 8px 14px;
-    border-radius: 12px;
-    border: 1px solid var(--panel-border);
+    padding: calc(0.6667 * 12 * var(--u)) calc(1.167 * 12 * var(--u));
+    border-radius: calc(1 * 12 * var(--u));
+    border: calc(0.08333 * 12 * var(--u)) solid var(--panel-border);
     background-color: var(--panel-bg);
     color: var(--text-muted);
     font-family: Minecraft, system-ui, sans-serif;
@@ -35,7 +35,7 @@
 #lockBrackets {
     --bracket-color: var(--text-muted);
     --bracket-arm: 22%;
-    --bracket-line: 2px;
+    --bracket-line: calc(0.1667 * 12 * var(--u));
     position: fixed;
     left: 0;
     top: 0;
@@ -83,7 +83,7 @@
     position: absolute;
     left: 100%;
     bottom: 100%;
-    margin: 0 0 4px 4px;
+    margin: 0 0 calc(0.3333 * 12 * var(--u)) calc(0.3333 * 12 * var(--u));
     color: var(--bracket-color);
     font-family: Minecraft, system-ui, sans-serif;
     font-size: 0.85em;
@@ -94,10 +94,10 @@
     position: absolute;
     left: 0;
     top: 100%;
-    margin-top: 6px;
+    margin-top: calc(0.5 * 12 * var(--u));
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: calc(0.3333 * 12 * var(--u));
     color: var(--bracket-color);
     font-family: Minecraft, system-ui, sans-serif;
     font-size: 0.75em;
@@ -106,9 +106,9 @@
 
 #lockBrackets .bracket-progress {
     display: block;
-    width: 72px;
-    height: 4px;
-    border: 1px solid var(--bracket-color);
+    width: calc(6 * 12 * var(--u));
+    height: calc(0.3333 * 12 * var(--u));
+    border: calc(0.08333 * 12 * var(--u)) solid var(--bracket-color);
     overflow: hidden;
 }
 
@@ -190,7 +190,7 @@
 #targetReticle {
     --reticle-color: #fff;
     --reticle-arm: 18%;
-    --reticle-line: 1px;
+    --reticle-line: calc(0.08333 * 12 * var(--u));
     position: fixed;
     left: 0;
     top: 0;
@@ -275,7 +275,7 @@
 #targetReticle .reticle-hint {
     position: absolute;
     left: 100%;
-    margin-left: 6px;
+    margin-left: calc(0.5 * 12 * var(--u));
     color: var(--reticle-color);
     font-family: Minecraft, system-ui, sans-serif;
     white-space: nowrap;
@@ -283,14 +283,14 @@
 
 #targetReticle .reticle-name {
     bottom: 100%;
-    margin-bottom: 2px;
+    margin-bottom: calc(0.1667 * 12 * var(--u));
     font-size: 0.85em;
     letter-spacing: 0.04em;
 }
 
 #targetReticle .reticle-hint {
     top: 100%;
-    margin-top: 2px;
+    margin-top: calc(0.1667 * 12 * var(--u));
     font-size: 0.65em;
     opacity: 0.6;
     letter-spacing: 0.08em;
@@ -313,12 +313,10 @@
 @keyframes reticle-acquire {
     from {
         opacity: 0;
-        scale: 1.45;
     }
 
     to {
         opacity: 1;
-        scale: 1;
     }
 }
 
@@ -345,9 +343,9 @@
     top: 0;
     z-index: 16;
     margin: 0;
-    padding: 3px 8px;
-    border-radius: 8px;
-    border: 1px solid var(--panel-border);
+    padding: calc(0.25 * 12 * var(--u)) calc(0.6667 * 12 * var(--u));
+    border-radius: calc(0.6667 * 12 * var(--u));
+    border: calc(0.08333 * 12 * var(--u)) solid var(--panel-border);
     background-color: var(--panel-bg);
     color: #fff;
     font-family: Minecraft, system-ui, sans-serif;

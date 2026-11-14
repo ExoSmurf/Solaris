@@ -51,6 +51,6 @@
     }
 
     75% {
-        translate: 0 -3vh;
+        translate: 0 calc(-1 * 3 * 9.375 * var(--u));
     }
 }
