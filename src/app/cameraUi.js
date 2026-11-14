@@ -7,7 +7,7 @@ import { activeBodies, state } from './state.js';
  * @param {{cameraRig: object, scrambler: object, infoPanel: object, planetBar: object, solar: object}} deps
  * @returns {{sync: () => void, bindControls: () => void}}
  */
-export function createCameraUi({ cameraRig, scrambler, infoPanel, planetBar, solar }) {
+export function createCameraUi({ cameraRig, scrambler, infoPanel, planetBar, solar, eggs }) {
     const nextButton = document.getElementById("next");
     const solarButton = document.getElementById("solar");
     const focusSwitch = document.getElementById("switch");
@@ -24,6 +24,7 @@ export function createCameraUi({ cameraRig, scrambler, infoPanel, planetBar, sol
 
         if (state.planetNo !== cameraRig.targetIndex) {
             state.planetNo = cameraRig.targetIndex;
+            eggs.visit(activeBodies()[cameraRig.targetIndex]);
             infoPanel.update();
         }
 

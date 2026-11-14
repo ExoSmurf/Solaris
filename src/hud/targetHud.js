@@ -21,7 +21,7 @@ import { activeBodies } from '../app/state.js';
  * @param {{camera: THREE.PerspectiveCamera, cameraRig: object}} deps
  * @returns {{update: (dt: number) => void}}
  */
-export function createTargetHud({ camera, cameraRig }) {
+export function createTargetHud({ camera, cameraRig, scene }) {
     const statusDisplay = createCameraStatus(document.getElementById("cameraStatus"));
     const bracketsElement = document.getElementById("lockBrackets");
     const bracketsDisplay = createLockBrackets(bracketsElement, {
@@ -32,6 +32,40 @@ export function createTargetHud({ camera, cameraRig }) {
 
     const ringElement = document.getElementById("container");
     const arrowElement = document.getElementById("arrow");
+    const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xa259ff, transparent: true, opacity: 0.45, depthWrite: false });
+    const orbitPosition = new THREE.Vector3();
+    let orbitLine = null;
+    let orbitBody = null;
+
+    /**
+     * Ślad orbity zablokowanej planety: okrąg o jej promieniu wokół Słońca. Ciała-księżyce go nie mają.
+     * @param {object} body - śledzona planeta
+     * @param {boolean} visible - czy pokazać ślad (tylko przy blokadzie)
+     * @returns {void}
+     */
+    function syncOrbit(body, visible) {
+        if (!visible || body.isMoon) {
+            if (orbitLine) orbitLine.visible = false;
+            return;
+        }
+        if (orbitBody !== body) {
+            if (orbitLine) {
+                scene.remove(orbitLine);
+                orbitLine.geometry.dispose();
+            }
+            body.worldCenter(orbitPosition);
+            const radius = Math.hypot(orbitPosition.x, orbitPosition.z);
+            const points = [];
+            for (let i = 0; i < 160; i++) {
+                const angle = (i / 160) * Math.PI * 2;
+                points.push(new THREE.Vector3(Math.cos(angle) * radius, orbitPosition.y, Math.sin(angle) * radius));
+            }
+            orbitLine = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points), orbitMaterial);
+            scene.add(orbitLine);
+            orbitBody = body;
+        }
+        orbitLine.visible = true;
+    }
     const previousPosition = new THREE.Vector3();
     const targetPosition = new THREE.Vector3();
     let previousTarget = null;
@@ -93,6 +127,7 @@ export function createTargetHud({ camera, cameraRig }) {
         camera.updateMatrixWorld();
         body.worldCenter(targetPosition);
         placeRing(body);
+        syncOrbit(body, cameraRig.mode === 'focused');
 
         if (previousTarget === body) {
             speed = smoothValue(speed, movementSpeed(previousPosition, targetPosition, dt), hudConfig.delta.smoothing);

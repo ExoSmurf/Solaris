@@ -1,0 +1,91 @@
+/* Efekty kokpitu: siatka heksagonów, obrót celownika, winieta przelotu, log startowy. */
+
+/* Winieta przelotu: rośnie wraz z prędkością (ustawiane z pętli renderu). */
+#warpVignette {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+/* Heksagonalna siatka za interfejsem (pod panelami, nad sceną 3D). */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='48'%3E%3Cpath d='M14 2 L26 9 L26 23 L14 30 L2 23 L2 9 Z M14 26 L26 33 L26 47 L14 54 L2 47 L2 33 Z' fill='none' stroke='rgba(162,89,255,0.09)' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+/* Obracająca się przerywana obwódka wokół najechanej planety. */
+#targetReticle[data-state="hover"]::after {
+    content: "";
+    position: absolute;
+    inset: -12%;
+    border: 1px dashed rgba(162, 89, 255, 0.5);
+    border-radius: 50%;
+    animation: reticle-spin 8s linear infinite, reticle-heartbeat 1.2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes reticle-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Log startowy na ekranie ładowania. */
+#bootLog {
+    position: fixed;
+    left: calc(16 * 12 * var(--u));
+    bottom: calc(16 * 12 * var(--u));
+    z-index: 25;
+    margin: 0;
+    font-size: calc(1 * 12 * var(--u));
+    line-height: 1.5;
+    color: rgba(162, 89, 255, 0.85);
+    pointer-events: none;
+    white-space: pre;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #targetReticle[data-state="hover"]::after {
+        animation: none;
+    }
+}
+
+/* Easter egg: komunikat na dole ekranu. */
+#eggToast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(120 * var(--u));
+    transform: translateX(-50%);
+    z-index: 27;
+    margin: 0;
+    padding: calc(4 * 12 * var(--u)) calc(8 * 12 * var(--u));
+    background: rgba(6, 6, 12, 0.85);
+    border: 1px solid rgba(162, 89, 255, 0.5);
+    color: #d6c4ff;
+    font-size: calc(1.25 * 12 * var(--u));
+    letter-spacing: 0.08em;
+    pointer-events: none;
+    transition: opacity 0.4s;
+}
+
+#eggToast[data-state="hidden"] {
+    opacity: 0;
+}
+
+/* Pulsowanie celownika w rytm bicia serca (cień, osobno od obrotu). */
+@keyframes reticle-heartbeat {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(162, 89, 255, 0);
+    }
+    40% {
+        box-shadow: 0 0 calc(10 * var(--u)) calc(2 * var(--u)) rgba(162, 89, 255, 0.45);
+    }
+}

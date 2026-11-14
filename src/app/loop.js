@@ -22,6 +22,7 @@ function isMobile() {
 }
 
 export function createRenderLoop({ engine, cameraRig, hud, planetPicker, warp, warpStars, starfield }) {
+    const vignette = document.getElementById('warpVignette');
     const warpShift = new THREE.Vector3();
     let lastFrameTime = performance.now();
 
@@ -37,6 +38,7 @@ export function createRenderLoop({ engine, cameraRig, hud, planetPicker, warp, w
         warpShift.set(1, 0, 0).applyQuaternion(camera.quaternion).multiplyScalar(offset);
         camera.position.add(warpShift);
         starfield.material.opacity = 1 - intensity;
+        vignette.style.opacity = String(intensity);
         warpStars.update(dt, speed, intensity, camera);
         renderFrame(engine, state.lowQuality);
         camera.position.sub(warpShift);

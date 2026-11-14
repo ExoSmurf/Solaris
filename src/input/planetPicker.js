@@ -17,7 +17,7 @@ const MOUSE_BUTTON = { primary: 0, secondary: 2 };
  * @param {{engine: object, cameraRig: object, warp: object, syncCameraUi: () => void}} deps
  * @returns {{update: () => void}}
  */
-export function createPlanetPicker({ engine, cameraRig, warp, syncCameraUi }) {
+export function createPlanetPicker({ engine, cameraRig, warp, syncCameraUi, eggs }) {
     const { renderer, camera } = engine;
     const reticleElement = document.getElementById("targetReticle");
     const reticle = createTargetReticle(
@@ -105,6 +105,7 @@ export function createPlanetPicker({ engine, cameraRig, warp, syncCameraUi }) {
         if (interactive) hoveredIndex = pickOnScreen(pointer, hoverCandidates(), scaledHud().hover);
         showCursorAction(cursorAction(cameraRig.mode, hoveredIndex >= 0, interactive));
         if (hoveredIndex < 0) {
+            eggs.clearHover();
             reticle.hide();
             return;
         }
@@ -113,7 +114,7 @@ export function createPlanetPicker({ engine, cameraRig, warp, syncCameraUi }) {
             reticle.hide();
             return;
         }
-        reticle.hover(frame, planetsInfo[globalPlanetIndex(hoveredIndex)].name);
+        reticle.hover(frame, eggs.labelFor(activeBodies()[hoveredIndex], planetsInfo[globalPlanetIndex(hoveredIndex)].name));
     }
 
     /**
@@ -154,7 +155,9 @@ export function createPlanetPicker({ engine, cameraRig, warp, syncCameraUi }) {
         const button = pointer.down?.button;
         pointer.down = null;
         if (!clicked) return;
-        if (button === MOUSE_BUTTON.primary) selectHovered();
+        if (button === MOUSE_BUTTON.primary) {
+            selectHovered();
+        }
         else if (button === MOUSE_BUTTON.secondary) toggleZoom();
     });
     canvas.addEventListener("contextmenu", (event) => event.preventDefault());

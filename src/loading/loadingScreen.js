@@ -66,6 +66,18 @@ export function createLoadingScreen({ isReady, onFinished }) {
         opacityFall = true;
         onFinished();
         startFalldown();
+        setTimeout(() => log.remove(), 1200);
     });
+    const log = document.createElement("p");
+    log.id = "bootLog";
+    document.body.appendChild(log);
+    const bootLines = ["> INIT CORE", "> LOAD SOLAR MODEL", "> CALIBRATE RADAR", "> SYSTEM ONLINE"];
+    let bootIndex = 0;
+    const typeBootLine = () => {
+        if (bootIndex >= bootLines.length || !log.isConnected) return;
+        log.textContent += (log.textContent ? "\n" : "") + bootLines[bootIndex++];
+        setTimeout(typeBootLine, 450);
+    };
+    typeBootLine();
     vid.play();
 }

@@ -13,6 +13,7 @@ import { createInfoPanel } from './info/infoPanel.js';
 import { createPlanetBar } from './navigation/planetBar.js';
 import { createSolarController } from './app/solarController.js';
 import { createCameraUi } from './app/cameraUi.js';
+import { createEasterEggs } from './app/easterEggs.js';
 import { createRenderLoop } from './app/loop.js';
 import { createLoadingScreen } from './loading/loadingScreen.js';
 import { bindActions } from './ui/actions.js';
@@ -38,12 +39,13 @@ const cameraRig = createCameraRig({
     onChange: () => ui?.sync(),
 });
 
-const hud = createTargetHud({ camera, cameraRig });
+const hud = createTargetHud({ camera, cameraRig, scene });
 const scrambler = createScrambler();
 const slideshow = createSlideshow();
 const infoPanel = createInfoPanel({ slideshow, imagePreloader: createImagePreloader() });
 const planetBar = createPlanetBar({ cameraRig });
-const picker = createPlanetPicker({ engine, cameraRig, warp, syncCameraUi: () => ui.sync() });
+const eggs = createEasterEggs({ starfield });
+const picker = createPlanetPicker({ engine, cameraRig, warp, syncCameraUi: () => ui.sync(), eggs });
 const loop = createRenderLoop({ engine, cameraRig, hud, planetPicker: picker, warp, warpStars, starfield });
 const solar = createSolarController({
     engine,
@@ -62,6 +64,7 @@ ui = createCameraUi({
     infoPanel,
     planetBar,
     solar,
+    eggs,
 });
 ui.bindControls();
 infoPanel.hide();
